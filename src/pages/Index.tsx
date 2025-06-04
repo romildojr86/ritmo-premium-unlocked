@@ -3,8 +3,11 @@ import { Check, Target, BarChart, TrendingUp, Clock, Users } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
+
   const benefits = [
     {
       icon: <Check className="w-6 h-6 text-green-500" />,
@@ -32,6 +35,10 @@ const Index = () => {
     document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const handleTestFree = () => {
+    navigate('/auth');
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -46,6 +53,7 @@ const Index = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button 
+              onClick={handleTestFree}
               size="lg" 
               className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-200 transform hover:scale-105"
             >
