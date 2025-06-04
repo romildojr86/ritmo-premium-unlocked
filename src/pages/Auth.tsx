@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import SignupForm from '@/components/auth/SignupForm';
 import LoginForm from '@/components/auth/LoginForm';
@@ -6,10 +5,12 @@ import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 type AuthView = 'plans' | 'signup' | 'login' | 'forgot';
 
 const Auth = () => {
+  const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<AuthView>('plans');
   const [selectedPlan, setSelectedPlan] = useState<'free' | 'monthly' | 'lifetime'>('free');
 
@@ -24,6 +25,10 @@ const Auth = () => {
   const handlePlanSelection = (plan: 'free' | 'monthly' | 'lifetime') => {
     setSelectedPlan(plan);
     setCurrentView('signup');
+  };
+
+  const handleBackToHome = () => {
+    navigate('/');
   };
 
   if (currentView === 'plans') {
@@ -221,10 +226,10 @@ const Auth = () => {
                 </p>
                 <p className="text-gray-600">
                   <button
-                    onClick={() => setCurrentView('plans')}
+                    onClick={handleBackToHome}
                     className="text-gray-500 hover:text-gray-600 text-sm"
                   >
-                    ← Voltar para escolha de planos
+                    ← Voltar para página inicial
                   </button>
                 </p>
               </>
