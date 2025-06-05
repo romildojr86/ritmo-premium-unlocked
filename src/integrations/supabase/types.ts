@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      corridas: {
+        Row: {
+          criado_em: string | null
+          data: string
+          distancia_km: number
+          id: string
+          notas: string | null
+          tempo_min: number
+          user_id: string
+        }
+        Insert: {
+          criado_em?: string | null
+          data: string
+          distancia_km: number
+          id?: string
+          notas?: string | null
+          tempo_min: number
+          user_id: string
+        }
+        Update: {
+          criado_em?: string | null
+          data?: string
+          distancia_km?: number
+          id?: string
+          notas?: string | null
+          tempo_min?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           criado_em: string | null
