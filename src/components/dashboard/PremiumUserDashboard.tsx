@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import DailyInspiration from './DailyInspiration';
 import MotivationalPanel from './MotivationalPanel';
 import RunForm from './RunForm';
 import GoalsSection from './GoalsSection';
@@ -32,6 +33,9 @@ interface PremiumUserDashboardProps {
 const PremiumUserDashboard = ({ stats, runs, onRunAdded }: PremiumUserDashboardProps) => {
   return (
     <div className="space-y-6">
+      {/* Inspiração do Dia */}
+      <DailyInspiration />
+
       {/* Painel motivacional */}
       <MotivationalPanel />
 
