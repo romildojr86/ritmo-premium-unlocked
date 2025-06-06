@@ -39,6 +39,33 @@ export type Database = {
         }
         Relationships: []
       }
+      metas: {
+        Row: {
+          atualizado_em: string | null
+          criado_em: string | null
+          meta_anual: number
+          meta_mensal: number
+          meta_semanal: number
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          meta_anual?: number
+          meta_mensal?: number
+          meta_semanal?: number
+          user_id: string
+        }
+        Update: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          meta_anual?: number
+          meta_mensal?: number
+          meta_semanal?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           criado_em: string | null

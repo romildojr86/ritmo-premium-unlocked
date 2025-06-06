@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import StatsCards from '@/components/dashboard/StatsCards';
 import RunForm from '@/components/dashboard/RunForm';
 import RunHistory from '@/components/dashboard/RunHistory';
 import UpgradePrompt from '@/components/dashboard/UpgradePrompt';
+import GoalsSection from '@/components/dashboard/GoalsSection';
 
 interface UserProfile {
   id: string;
@@ -276,6 +276,9 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Seção de Metas */}
+            <GoalsSection stats={stats} />
 
             {/* Histórico de corridas */}
             <RunHistory runs={runs} />
