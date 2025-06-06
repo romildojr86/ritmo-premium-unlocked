@@ -1,4 +1,3 @@
-
 import { Check, Target, BarChart, TrendingUp, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +36,10 @@ const Index = () => {
 
   const handleTestFree = () => {
     navigate('/auth');
+  };
+
+  const handleMonthlySubscription = () => {
+    window.open('https://pay.cakto.com.br/3a6vgf2_422206', '_blank');
   };
 
   return (
@@ -182,7 +185,7 @@ const Index = () => {
                     <span className="text-gray-700">Gráficos detalhados</span>
                   </li>
                 </ul>
-                <Button className="w-full bg-green-500 hover:bg-green-600 text-white py-3 text-lg font-semibold">
+                <Button onClick={handleMonthlySubscription} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 text-lg font-semibold">
                   Assinar Mensal
                 </Button>
               </CardContent>

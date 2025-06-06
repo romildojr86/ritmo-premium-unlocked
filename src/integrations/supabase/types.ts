@@ -68,6 +68,7 @@ export type Database = {
       }
       users: {
         Row: {
+          assinou_em: string | null
           criado_em: string | null
           email: string
           id: string
@@ -76,6 +77,7 @@ export type Database = {
           telefone: string | null
         }
         Insert: {
+          assinou_em?: string | null
           criado_em?: string | null
           email: string
           id?: string
@@ -84,6 +86,7 @@ export type Database = {
           telefone?: string | null
         }
         Update: {
+          assinou_em?: string | null
           criado_em?: string | null
           email?: string
           id?: string
