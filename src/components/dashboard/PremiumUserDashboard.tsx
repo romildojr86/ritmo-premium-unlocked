@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import StatsCards from './StatsCards';
+import MotivationalPanel from './MotivationalPanel';
 import RunForm from './RunForm';
 import GoalsSection from './GoalsSection';
 import RunHistory from './RunHistory';
@@ -32,8 +32,8 @@ interface PremiumUserDashboardProps {
 const PremiumUserDashboard = ({ stats, runs, onRunAdded }: PremiumUserDashboardProps) => {
   return (
     <div className="space-y-6">
-      {/* Cards de estatísticas */}
-      <StatsCards stats={stats} />
+      {/* Painel motivacional */}
+      <MotivationalPanel />
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Registro de nova corrida */}
