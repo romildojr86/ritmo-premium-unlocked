@@ -5,6 +5,7 @@ import StatsCards from './StatsCards';
 import RunForm from './RunForm';
 import GoalsSection from './GoalsSection';
 import RunHistory from './RunHistory';
+import UserGoalsProgress from './UserGoalsProgress';
 
 interface Run {
   id: string;
@@ -45,6 +46,9 @@ const PremiumUserDashboard = ({ stats, runs, onRunAdded }: PremiumUserDashboardP
             <RunForm onRunAdded={onRunAdded} />
           </CardContent>
         </Card>
+
+        {/* Metas do Usuário */}
+        <UserGoalsProgress stats={stats} />
       </div>
 
       {/* Seção de Metas */}
