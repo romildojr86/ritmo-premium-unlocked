@@ -1,3 +1,4 @@
+
 import { Check, Target, BarChart, TrendingUp, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,6 +41,10 @@ const Index = () => {
 
   const handleMonthlySubscription = () => {
     window.open('https://pay.cakto.com.br/3a6vgf2_422206', '_blank');
+  };
+
+  const handleLifetimeSubscription = () => {
+    window.open('https://pay.cakto.com.br/u3aagrc_422143', '_blank');
   };
 
   return (
@@ -231,7 +236,7 @@ const Index = () => {
                     <span className="text-gray-700">Suporte prioritário</span>
                   </li>
                 </ul>
-                <Button className="w-full bg-green-500 hover:bg-green-600 text-white py-3 text-lg font-semibold transition-all duration-200 transform hover:scale-105">
+                <Button onClick={handleLifetimeSubscription} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 text-lg font-semibold transition-all duration-200 transform hover:scale-105">
                   Quero Acesso Vitalício
                 </Button>
               </CardContent>
@@ -254,6 +259,7 @@ const Index = () => {
             <span className="text-lg font-semibold">Restam poucas vagas disponíveis</span>
           </div>
           <Button 
+            onClick={handleLifetimeSubscription}
             size="lg" 
             className="bg-white text-green-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-200 transform hover:scale-105"
           >
