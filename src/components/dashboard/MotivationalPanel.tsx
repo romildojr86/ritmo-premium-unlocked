@@ -47,26 +47,29 @@ const MotivationalPanel = () => {
   };
 
   const fetchWeeklyData = async (userId: string) => {
+    // Buscar dados da semana atual usando SQL correto
     const { data, error } = await supabase
       .from('corridas')
       .select('data, distancia_km')
       .eq('user_id', userId)
-      .gte('data', 'date_trunc(\'week\', current_date)')
-      .lt('data', 'date_trunc(\'week\', current_date + interval \'1 week\')');
+      .gte('data', new Date(new Date().setDate(new Date().getDate() - new Date().getDay())).toISOString().split('T')[0])
+      .lt('data', new Date(new Date().setDate(new Date().getDate() - new Date().getDay() + 7)).toISOString().split('T')[0]);
 
     if (error) {
       console.error('Erro ao buscar dados semanais:', error);
       return;
     }
 
-    // Inicializar dados da semana
+    // Inicializar dados da semana (Segunda a Domingo)
     const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
     const weeklyMap = new Map(weekDays.map(day => [day, 0]));
 
     // Processar dados das corridas
     data?.forEach(run => {
       const runDate = new Date(run.data);
-      const dayOfWeek = runDate.getDay();
+      const dayOfWeek = runDate.getDay(); // 0 = domingo, 1 = segunda, etc
+      
+      // Mapear dias da semana corretamente
       const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
       const dayName = dayNames[dayOfWeek];
       
@@ -75,6 +78,7 @@ const MotivationalPanel = () => {
       }
     });
 
+    // Criar dados do gráfico na ordem Segunda a Domingo
     const chartData = weekDays.map(day => ({
       day,
       km: weeklyMap.get(day) || 0
