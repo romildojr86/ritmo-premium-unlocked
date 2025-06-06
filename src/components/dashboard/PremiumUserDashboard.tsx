@@ -45,38 +45,6 @@ const PremiumUserDashboard = ({ stats, runs, onRunAdded }: PremiumUserDashboardP
             <RunForm onRunAdded={onRunAdded} />
           </CardContent>
         </Card>
-
-        {/* Meta semanal */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Meta Semanal</CardTitle>
-            <CardDescription>Progresso da sua meta de 15km por semana</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between text-sm">
-                <span>Progresso</span>
-                <span>{stats.thisWeek.toFixed(1)} / 15.0 km</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min((stats.thisWeek / 15) * 100, 100)}%` }}
-                ></div>
-              </div>
-              {stats.thisWeek < 15 && (
-                <p className="text-sm text-green-600 font-medium">
-                  Você está a {(15 - stats.thisWeek).toFixed(1)}km de bater sua meta semanal! 🏃‍♂️
-                </p>
-              )}
-              {stats.thisWeek >= 15 && (
-                <p className="text-sm text-green-600 font-medium">
-                  🎉 Parabéns! Você bateu sua meta semanal!
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Seção de Metas */}
