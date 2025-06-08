@@ -8,6 +8,7 @@ import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import FreeUserDashboard from '@/components/dashboard/FreeUserDashboard';
 import PremiumUserDashboard from '@/components/dashboard/PremiumUserDashboard';
 import LoadingSpinner from '@/components/dashboard/LoadingSpinner';
+import TrialWarning from '@/components/dashboard/TrialWarning';
 
 const Dashboard = () => {
   const { user, handleLogout } = useAuth();
@@ -21,6 +22,12 @@ const Dashboard = () => {
 
   const isPremium = userProfile?.status === 'premium' || userProfile?.status === 'vitalicio';
   const isFree = userProfile?.status === 'free';
+  
+  // Verificar se é trial premium ativo
+  const isActiveTrial = userProfile?.status === 'premium' && 
+                       userProfile?.plano === 'trial' && 
+                       userProfile?.expira_em && 
+                       new Date(userProfile.expira_em) > new Date();
 
   if (loading) {
     return <LoadingSpinner />;
@@ -34,6 +41,11 @@ const Dashboard = () => {
           userName={userProfile?.nome || 'Usuário'} 
           onLogout={handleLogout}
         />
+
+        {/* Aviso de Trial Premium */}
+        {isActiveTrial && userProfile?.expira_em && (
+          <TrialWarning expiresAt={userProfile.expira_em} />
+        )}
 
         {/* Conteúdo baseado no status */}
         {isFree && (
