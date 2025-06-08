@@ -14,52 +14,32 @@ import TrialWarning from '@/components/dashboard/TrialWarning';
 import ExpiredTrialWarning from '@/components/dashboard/ExpiredTrialWarning';
 
 const Dashboard = () => {
-  const { user, handleLogout, loading: authLoading, revalidateSession } = useAuth();
+  const { user, handleLogout, loading: authLoading } = useAuth();
   const { userProfile, loading: profileLoading, error: profileError, refreshProfile } = useUserProfile(user);
   const { runs, stats, loading: runsLoading, refetchRuns } = useRuns(user);
   const { isExpired } = useExpirationCheck(user, userProfile);
-  const [loadingTimeout, setLoadingTimeout] = React.useState(false);
-  const [sessionTimeout, setSessionTimeout] = React.useState(false);
+  const [dataTimeout, setDataTimeout] = React.useState(false);
 
-  // Timeout de 3 segundos para dados do perfil
+  // Timeout de 2 segundos para dados do perfil
   React.useEffect(() => {
-    const timer = setTimeout(() => {
-      if (profileLoading || runsLoading) {
-        console.log('⏰ Timeout atingido - forçando exibição de erro');
-        setLoadingTimeout(true);
-      }
-    }, 3000);
+    if (user && (profileLoading || runsLoading)) {
+      const timer = setTimeout(() => {
+        console.log('⏰ Timeout de 2s atingido para dados do perfil');
+        setDataTimeout(true);
+      }, 2000);
 
-    return () => clearTimeout(timer);
-  }, [profileLoading, runsLoading]);
-
-  // Timeout de 5 segundos para sessão inválida
-  React.useEffect(() => {
-    if (authLoading) {
-      const sessionTimer = setTimeout(() => {
-        console.log('⏰ Timeout de sessão atingido - verificando se precisa redirecionar');
-        if (authLoading && !user) {
-          console.log('❌ Sessão ainda carregando após 5s sem usuário - redirecionando');
-          setSessionTimeout(true);
-          toast.error('Sua sessão expirou. Faça login novamente.');
-          window.location.href = '/';
-        }
-      }, 5000);
-
-      return () => clearTimeout(sessionTimer);
+      return () => clearTimeout(timer);
     }
-  }, [authLoading, user]);
+  }, [user, profileLoading, runsLoading]);
 
   // Reset timeout quando dados carregam
   React.useEffect(() => {
     if (!profileLoading && !runsLoading) {
-      setLoadingTimeout(false);
+      setDataTimeout(false);
     }
-    if (!authLoading) {
-      setSessionTimeout(false);
-    }
-  }, [profileLoading, runsLoading, authLoading]);
+  }, [profileLoading, runsLoading]);
 
+  // Logs de debug
   console.log('=== Dashboard render ===');
   console.log('user.id', user?.id);
   console.log('🔐 Auth loading:', authLoading);
@@ -76,8 +56,7 @@ const Dashboard = () => {
   console.log('user.expira_em', userProfile?.expira_em);
   console.log('🏃 Runs loading:', runsLoading);
   console.log('⏰ Is expired:', isExpired);
-  console.log('⏰ Loading timeout:', loadingTimeout);
-  console.log('⏰ Session timeout:', sessionTimeout);
+  console.log('⏰ Data timeout:', dataTimeout);
 
   const handleRunAdded = () => {
     refetchRuns();
@@ -88,64 +67,51 @@ const Dashboard = () => {
     refreshProfile();
   };
 
-  const handleRetry = async () => {
+  const handleRetry = () => {
     console.log('🔄 Usuário solicitou retry');
-    setLoadingTimeout(false);
-    setSessionTimeout(false);
-    
-    // Tenta revalidar a sessão primeiro
-    if (revalidateSession) {
-      const session = await revalidateSession();
-      if (!session) {
-        toast.error('Sua sessão expirou. Faça login novamente.');
-        window.location.href = '/';
-        return;
-      }
-    }
-    
+    setDataTimeout(false);
     refreshProfile();
   };
 
-  const isPremium = userProfile?.status === 'premium' || userProfile?.status === 'vitalicio';
-  const isFree = userProfile?.status === 'free';
-  
-  // Simplificando a lógica do trial ativo - corrigindo o problema principal
-  const isActiveTrial = userProfile?.status === 'premium' && userProfile?.plano === 'trial';
-
-  console.log('🔍 Trial check simplificado:', {
-    status: userProfile?.status,
-    plano: userProfile?.plano,
-    isActiveTrial,
-    expira_em: userProfile?.expira_em
-  });
-
-  // Se ainda está carregando a autenticação ou houve timeout de sessão
-  if (authLoading && !sessionTimeout) {
+  // Se ainda está carregando a autenticação
+  if (authLoading) {
     return <LoadingSpinner />;
   }
 
-  // Se houve timeout de sessão, redireciona
-  if (sessionTimeout) {
-    return null; // Vai redirecionar
+  // Se não há usuário logado, redirecionar
+  if (!user) {
+    window.location.href = '/';
+    return null;
   }
 
-  // Se houve erro ao carregar o perfil OU timeout
-  if ((profileError && !profileLoading) || loadingTimeout) {
-    const errorMessage = loadingTimeout 
-      ? "Timeout ao carregar dados - tente novamente" 
+  // Se houve erro ao carregar o perfil OU timeout nos dados
+  if ((profileError && !profileLoading) || dataTimeout) {
+    const errorMessage = dataTimeout 
+      ? "Não foi possível carregar seus dados. Tente novamente." 
       : profileError;
     return <DashboardError onRetry={handleRetry} error={errorMessage} />;
   }
 
   // Se ainda está carregando o perfil ou runs (apenas na primeira carga e sem timeout)
-  if ((profileLoading || runsLoading) && !loadingTimeout) {
+  if ((profileLoading || runsLoading) && !dataTimeout) {
     return <LoadingSpinner />;
   }
 
   // Se não há perfil de usuário após o carregamento
-  if (!userProfile && !profileLoading && !loadingTimeout) {
+  if (!userProfile && !profileLoading && !dataTimeout) {
     return <DashboardError onRetry={handleRetry} error="Perfil do usuário não encontrado" />;
   }
+
+  const isPremium = userProfile?.status === 'premium' || userProfile?.status === 'vitalicio';
+  const isFree = userProfile?.status === 'free';
+  const isActiveTrial = userProfile?.status === 'premium' && userProfile?.plano === 'trial';
+
+  console.log('🔍 Trial check:', {
+    status: userProfile?.status,
+    plano: userProfile?.plano,
+    isActiveTrial,
+    expira_em: userProfile?.expira_em
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -164,7 +130,7 @@ const Dashboard = () => {
           />
         )}
 
-        {/* Aviso de Trial Premium Ativo - corrigindo a condição para mostrar sempre que for trial premium */}
+        {/* Aviso de Trial Premium Ativo */}
         {!isExpired && isActiveTrial && userProfile?.expira_em && (
           <TrialWarning expiresAt={userProfile.expira_em} />
         )}

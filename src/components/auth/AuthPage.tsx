@@ -33,6 +33,7 @@ const AuthPage = () => {
         if (event === 'SIGNED_IN' && session) {
           setUser(session.user);
           toast.success('Login realizado com sucesso!');
+          // Redirecionar diretamente sem delay
           navigate('/dashboard');
         } else if (event === 'SIGNED_OUT') {
           setUser(null);

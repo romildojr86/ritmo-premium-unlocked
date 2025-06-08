@@ -9,10 +9,49 @@ interface UserWithAdmin extends User {
   isAdmin?: boolean;
 }
 
+interface CachedProfile {
+  user: UserWithAdmin;
+  timestamp: number;
+}
+
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+const CACHE_KEY = 'auth_user_cache';
+
 export const useAuth = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserWithAdmin | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Função para salvar usuário no cache
+  const saveUserToCache = (userData: UserWithAdmin) => {
+    const cached: CachedProfile = {
+      user: userData,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cached));
+  };
+
+  // Função para buscar usuário do cache
+  const getUserFromCache = (): UserWithAdmin | null => {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (!cached) return null;
+
+      const parsedCache: CachedProfile = JSON.parse(cached);
+      const isExpired = Date.now() - parsedCache.timestamp > CACHE_DURATION;
+      
+      if (isExpired) {
+        localStorage.removeItem(CACHE_KEY);
+        return null;
+      }
+
+      return parsedCache.user;
+    } catch (error) {
+      console.error('Erro ao ler cache:', error);
+      localStorage.removeItem(CACHE_KEY);
+      return null;
+    }
+  };
 
   const fetchUserAdminStatus = async (userId: string) => {
     try {
@@ -40,61 +79,43 @@ export const useAuth = () => {
     }
   };
 
-  const revalidateSession = async () => {
-    try {
-      console.log('🔄 Revalidando sessão...');
-      
-      // Primeiro tenta pegar a sessão atual
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error('❌ Erro ao obter sessão:', sessionError);
-        throw sessionError;
-      }
-
-      console.log('📋 Sessão atual:', session?.user?.email || 'nenhuma');
-
-      // Se não há sessão, tenta refrescar
-      if (!session) {
-        console.log('🔄 Tentando refresh da sessão...');
-        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-        
-        if (refreshError) {
-          console.error('❌ Erro no refresh da sessão:', refreshError);
-          throw refreshError;
-        }
-
-        if (refreshData.session) {
-          console.log('✅ Sessão refreshada com sucesso');
-          return refreshData.session;
-        }
-      }
-
-      return session;
-    } catch (error) {
-      console.error('💥 Erro fatal na revalidação da sessão:', error);
-      return null;
-    }
-  };
-
   useEffect(() => {
-    const getUser = async () => {
+    const initializeAuth = async () => {
       try {
-        console.log('=== Iniciando getUser ===');
+        console.log('=== Inicializando autenticação ===');
         
-        // Revalida a sessão primeiro
-        const session = await revalidateSession();
+        // Primeiro, tenta carregar do cache
+        const cachedUser = getUserFromCache();
+        if (cachedUser) {
+          console.log('✅ Usuário carregado do cache:', cachedUser.email);
+          setUser(cachedUser);
+          setLoading(false);
+          return;
+        }
+
+        console.log('📡 Verificando sessão no Supabase...');
+        
+        // Verifica sessão atual no Supabase
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('❌ Erro ao obter sessão:', error);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
         console.log('auth.session', session);
-        
+        console.log('user.id', session?.user?.id);
+
         if (!session?.user) {
-          console.log('Nenhuma sessão encontrada após revalidação');
+          console.log('❌ Nenhuma sessão encontrada');
           setUser(null);
           setLoading(false);
           return;
         }
         
-        console.log('Usuário logado:', session.user.email);
-        console.log('ID do usuário:', session.user.id);
+        console.log('✅ Sessão encontrada:', session.user.email);
         
         // Buscar status de admin
         const isAdmin = await fetchUserAdminStatus(session.user.id);
@@ -105,37 +126,34 @@ export const useAuth = () => {
         };
         
         console.log('Usuário final com admin:', userWithAdmin);
+        
+        // Salva no cache e no state
+        saveUserToCache(userWithAdmin);
         setUser(userWithAdmin);
       } catch (error) {
-        console.error('Erro na autenticação:', error);
+        console.error('💥 Erro na inicialização:', error);
         setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
-    getUser();
+    initializeAuth();
 
-    // Fallback timeout de 5 segundos
+    // Timeout de fallback de 2 segundos
     const timeoutId = setTimeout(() => {
       if (loading) {
-        console.log('⏰ Timeout de 5s atingido - forçando revalidação');
-        revalidateSession().then((session) => {
-          if (!session) {
-            console.log('❌ Sessão inválida após timeout - redirecionando para login');
-            toast.error('Sua sessão expirou. Faça login novamente.');
-            navigate('/');
-          }
-          setLoading(false);
-        });
+        console.log('⏰ Timeout de 2s atingido - forçando fim do loading');
+        setLoading(false);
       }
-    }, 5000);
+    }, 2000);
 
     // Escutar mudanças na autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('=== Auth state change ===', event, session?.user?.email);
         console.log('auth.session', session);
+        console.log('user.id', session?.user?.id);
         
         if (event === 'SIGNED_IN' && session) {
           setLoading(true);
@@ -149,9 +167,14 @@ export const useAuth = () => {
           };
           
           console.log('Usuário após login com admin:', userWithAdmin);
+          
+          // Salva no cache e no state
+          saveUserToCache(userWithAdmin);
           setUser(userWithAdmin);
           setLoading(false);
         } else if (event === 'SIGNED_OUT') {
+          console.log('🚪 Usuário deslogado');
+          localStorage.removeItem(CACHE_KEY);
           setUser(null);
           setLoading(false);
         } else if (event === 'TOKEN_REFRESHED') {
@@ -164,38 +187,18 @@ export const useAuth = () => {
       clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
-  }, [navigate]);
-
-  // Função para detectar visibilidade da página e revalidar quando necessário
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && user) {
-        console.log('👁️ Página ficou visível - revalidando sessão');
-        revalidateSession().then((session) => {
-          if (!session) {
-            console.log('❌ Sessão perdida após voltar à página - fazendo logout');
-            handleLogout();
-          }
-        });
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [user]);
+  }, []);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast.error('Erro ao fazer logout');
     } else {
+      localStorage.removeItem(CACHE_KEY);
       toast.success('Logout realizado com sucesso!');
       navigate('/');
     }
   };
 
-  return { user, handleLogout, loading, revalidateSession };
+  return { user, handleLogout, loading };
 };
