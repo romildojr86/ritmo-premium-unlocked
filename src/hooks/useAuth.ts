@@ -4,80 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from 'sonner';
 import { User } from '@supabase/supabase-js';
+import { getUserFromCache, clearUserCache } from '@/utils/authCache';
+import { initializeUserSession, handleAuthStateChange } from '@/utils/sessionUtils';
 
 interface UserWithAdmin extends User {
   isAdmin?: boolean;
 }
 
-interface CachedProfile {
-  user: UserWithAdmin;
-  timestamp: number;
-}
-
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
-const CACHE_KEY = 'auth_user_cache';
-
 export const useAuth = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserWithAdmin | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Função para salvar usuário no cache
-  const saveUserToCache = (userData: UserWithAdmin) => {
-    const cached: CachedProfile = {
-      user: userData,
-      timestamp: Date.now()
-    };
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cached));
-  };
-
-  // Função para buscar usuário do cache
-  const getUserFromCache = (): UserWithAdmin | null => {
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (!cached) return null;
-
-      const parsedCache: CachedProfile = JSON.parse(cached);
-      const isExpired = Date.now() - parsedCache.timestamp > CACHE_DURATION;
-      
-      if (isExpired) {
-        localStorage.removeItem(CACHE_KEY);
-        return null;
-      }
-
-      return parsedCache.user;
-    } catch (error) {
-      console.error('Erro ao ler cache:', error);
-      localStorage.removeItem(CACHE_KEY);
-      return null;
-    }
-  };
-
-  const fetchUserAdminStatus = async (userId: string) => {
-    try {
-      console.log('Buscando status admin para usuário ID:', userId);
-      
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('admin')
-        .eq('id', userId)
-        .single();
-
-      console.log('Resultado da busca admin:', { userData, error });
-      
-      if (error) {
-        console.error('Erro ao buscar dados do usuário:', error);
-        return false;
-      }
-      
-      const isAdmin = userData?.admin === true;
-      console.log('Status admin final:', isAdmin);
-      return isAdmin;
-    } catch (error) {
-      console.error('Erro na busca do status admin:', error);
-      return false;
-    }
-  };
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -93,43 +30,9 @@ export const useAuth = () => {
           return;
         }
 
-        console.log('📡 Verificando sessão no Supabase...');
-        
-        // Verifica sessão atual no Supabase
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('❌ Erro ao obter sessão:', error);
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
-        console.log('auth.session', session);
-        console.log('user.id', session?.user?.id);
-
-        if (!session?.user) {
-          console.log('❌ Nenhuma sessão encontrada');
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-        
-        console.log('✅ Sessão encontrada:', session.user.email);
-        
-        // Buscar status de admin
-        const isAdmin = await fetchUserAdminStatus(session.user.id);
-        
-        const userWithAdmin = {
-          ...session.user,
-          isAdmin
-        };
-        
-        console.log('Usuário final com admin:', userWithAdmin);
-        
-        // Salva no cache e no state
-        saveUserToCache(userWithAdmin);
-        setUser(userWithAdmin);
+        // Se não há cache, inicializa sessão do Supabase
+        const sessionUser = await initializeUserSession();
+        setUser(sessionUser);
       } catch (error) {
         console.error('💥 Erro na inicialização:', error);
         setUser(null);
@@ -157,24 +60,12 @@ export const useAuth = () => {
         
         if (event === 'SIGNED_IN' && session) {
           setLoading(true);
-          
-          // Buscar status de admin
-          const isAdmin = await fetchUserAdminStatus(session.user.id);
-          
-          const userWithAdmin = {
-            ...session.user,
-            isAdmin
-          };
-          
-          console.log('Usuário após login com admin:', userWithAdmin);
-          
-          // Salva no cache e no state
-          saveUserToCache(userWithAdmin);
+          const userWithAdmin = await handleAuthStateChange(session);
           setUser(userWithAdmin);
           setLoading(false);
         } else if (event === 'SIGNED_OUT') {
           console.log('🚪 Usuário deslogado');
-          localStorage.removeItem(CACHE_KEY);
+          clearUserCache();
           setUser(null);
           setLoading(false);
         } else if (event === 'TOKEN_REFRESHED') {
@@ -194,7 +85,7 @@ export const useAuth = () => {
     if (error) {
       toast.error('Erro ao fazer logout');
     } else {
-      localStorage.removeItem(CACHE_KEY);
+      clearUserCache();
       toast.success('Logout realizado com sucesso!');
       navigate('/');
     }
