@@ -4,20 +4,27 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useRuns } from '@/hooks/useRuns';
+import { useExpirationCheck } from '@/hooks/useExpirationCheck';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import FreeUserDashboard from '@/components/dashboard/FreeUserDashboard';
 import PremiumUserDashboard from '@/components/dashboard/PremiumUserDashboard';
 import LoadingSpinner from '@/components/dashboard/LoadingSpinner';
 import TrialWarning from '@/components/dashboard/TrialWarning';
+import ExpiredTrialWarning from '@/components/dashboard/ExpiredTrialWarning';
 
 const Dashboard = () => {
   const { user, handleLogout } = useAuth();
-  const { userProfile } = useUserProfile(user);
+  const { userProfile, refreshProfile } = useUserProfile(user);
   const { runs, stats, loading, refetchRuns } = useRuns(user);
+  const { isExpired } = useExpirationCheck(user, userProfile);
 
   const handleRunAdded = () => {
     refetchRuns();
     toast.success('Corrida registrada com sucesso!');
+  };
+
+  const handleStatusChange = () => {
+    refreshProfile();
   };
 
   const isPremium = userProfile?.status === 'premium' || userProfile?.status === 'vitalicio';
@@ -42,8 +49,16 @@ const Dashboard = () => {
           onLogout={handleLogout}
         />
 
-        {/* Aviso de Trial Premium */}
-        {isActiveTrial && userProfile?.expira_em && (
+        {/* Aviso de Trial Expirado */}
+        {isExpired && user && (
+          <ExpiredTrialWarning 
+            userId={user.id} 
+            onStatusChange={handleStatusChange}
+          />
+        )}
+
+        {/* Aviso de Trial Premium Ativo */}
+        {!isExpired && isActiveTrial && userProfile?.expira_em && (
           <TrialWarning expiresAt={userProfile.expira_em} />
         )}
 
@@ -55,7 +70,7 @@ const Dashboard = () => {
           />
         )}
 
-        {isPremium && (
+        {isPremium && !isExpired && (
           <PremiumUserDashboard 
             stats={stats}
             runs={runs}
