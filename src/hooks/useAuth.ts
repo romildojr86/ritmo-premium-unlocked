@@ -12,36 +12,70 @@ interface UserWithAdmin extends User {
 export const useAuth = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserWithAdmin | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
-        navigate('/auth');
-        return;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+        
+        // Buscar informações do usuário incluindo o campo admin
+        const { data: userData, error } = await supabase
+          .from('users')
+          .select('admin')
+          .eq('id', session.user.id)
+          .single();
+
+        if (error) {
+          console.error('Erro ao buscar dados do usuário:', error);
+          setUser(session.user);
+        } else {
+          const userWithAdmin = {
+            ...session.user,
+            isAdmin: userData?.admin || false
+          };
+          setUser(userWithAdmin);
+        }
+      } catch (error) {
+        console.error('Erro na autenticação:', error);
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-      
-      // Buscar informações do usuário incluindo o campo admin
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('admin')
-        .eq('id', session.user.id)
-        .single();
-
-      if (error) {
-        console.error('Erro ao buscar dados do usuário:', error);
-      }
-
-      const userWithAdmin = {
-        ...session.user,
-        isAdmin: userData?.admin || false
-      };
-
-      setUser(userWithAdmin);
     };
 
     getUser();
-  }, [navigate]);
+
+    // Escutar mudanças na autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          // Buscar dados do admin quando o usuário fizer login
+          const { data: userData, error } = await supabase
+            .from('users')
+            .select('admin')
+            .eq('id', session.user.id)
+            .single();
+
+          const userWithAdmin = {
+            ...session.user,
+            isAdmin: userData?.admin || false
+          };
+          setUser(userWithAdmin);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        }
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -53,5 +87,5 @@ export const useAuth = () => {
     }
   };
 
-  return { user, handleLogout };
+  return { user, handleLogout, loading };
 };

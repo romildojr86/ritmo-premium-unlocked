@@ -6,25 +6,27 @@ import { useAuth } from '@/hooks/useAuth';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 
 const AdminDashboardPage = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (loading) return; // Aguardar o carregamento da autenticação
+
     if (!user) {
-      toast.error('Você precisa estar logado para acessar esta página');
-      navigate('/auth');
+      toast.error('Acesso restrito. Apenas administradores podem acessar esta área.');
+      navigate('/');
       return;
     }
 
     if (!user.isAdmin) {
-      toast.error('Acesso restrito - Apenas administradores podem acessar');
-      navigate('/dashboard');
+      toast.error('Acesso restrito. Apenas administradores podem acessar esta área.');
+      navigate('/');
       return;
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
   // Loading state enquanto verifica a autenticação
-  if (!user) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -35,7 +37,7 @@ const AdminDashboardPage = () => {
   }
 
   // Se não é autorizado, mostra mensagem enquanto redireciona
-  if (!user.isAdmin) {
+  if (!user || !user.isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

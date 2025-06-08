@@ -13,7 +13,7 @@ import TrialWarning from '@/components/dashboard/TrialWarning';
 import ExpiredTrialWarning from '@/components/dashboard/ExpiredTrialWarning';
 
 const Dashboard = () => {
-  const { user, handleLogout } = useAuth();
+  const { user, handleLogout, loading: authLoading } = useAuth();
   const { userProfile, refreshProfile } = useUserProfile(user);
   const { runs, stats, loading, refetchRuns } = useRuns(user);
   const { isExpired } = useExpirationCheck(user, userProfile);
@@ -36,7 +36,7 @@ const Dashboard = () => {
                        userProfile?.expira_em && 
                        new Date(userProfile.expira_em) > new Date();
 
-  if (loading) {
+  if (authLoading || loading) {
     return <LoadingSpinner />;
   }
 
