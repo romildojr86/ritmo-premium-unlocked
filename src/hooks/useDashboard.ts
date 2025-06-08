@@ -13,24 +13,24 @@ export const useDashboard = () => {
   const { isExpired } = useExpirationCheck(user, userProfile);
   const [dataTimeout, setDataTimeout] = React.useState(false);
 
-  // Timeout de 3 segundos para dados do perfil (aumentado conforme solicitado)
+  // Timeout de 10 segundos para dados do perfil (mais tolerante)
   React.useEffect(() => {
-    if (user && (profileLoading || runsLoading)) {
+    if (user && profileLoading) {
       const timer = setTimeout(() => {
-        console.log('⏰ Timeout de 3s atingido para dados do perfil');
+        console.log('⏰ Timeout de 10s atingido para dados do perfil');
         setDataTimeout(true);
-      }, 3000);
+      }, 10000);
 
       return () => clearTimeout(timer);
     }
-  }, [user, profileLoading, runsLoading]);
+  }, [user, profileLoading]);
 
   // Reset timeout quando dados carregam
   React.useEffect(() => {
-    if (!profileLoading && !runsLoading) {
+    if (!profileLoading) {
       setDataTimeout(false);
     }
-  }, [profileLoading, runsLoading]);
+  }, [profileLoading]);
 
   // Listener para detectar volta do foco e recarregar dados se necessário
   React.useEffect(() => {
@@ -78,7 +78,7 @@ export const useDashboard = () => {
   };
 
   const isPremium = userProfile?.status === 'premium' || userProfile?.status === 'vitalicio';
-  const isFree = userProfile?.status === 'free';
+  const isFree = userProfile?.status === 'free' || !userProfile; // Fallback para free se não há perfil
   const isActiveTrial = userProfile?.status === 'premium' && userProfile?.plano === 'trial';
 
   console.log('🔍 Trial check:', {

@@ -55,30 +55,20 @@ const DashboardLayout = ({
     return null;
   }
 
-  // Se houve erro ao carregar o perfil OU timeout nos dados
-  if ((profileError && !profileLoading) || dataTimeout) {
-    const errorMessage = dataTimeout 
-      ? "Não foi possível carregar seus dados. Tente novamente." 
-      : profileError;
-    return <DashboardError onRetry={onRetry} error={errorMessage} />;
+  // Se houve erro grave no perfil E timeout (apenas para erros persistentes)
+  if (profileError && dataTimeout && !profileLoading) {
+    return <DashboardError onRetry={onRetry} error={profileError} />;
   }
 
-  // Se ainda está carregando o perfil ou runs (apenas na primeira carga e sem timeout)
-  if ((profileLoading || runsLoading) && !dataTimeout) {
-    return <LoadingSpinner />;
-  }
-
-  // Se não há perfil de usuário após o carregamento
-  if (!userProfile && !profileLoading && !dataTimeout) {
-    return <DashboardError onRetry={onRetry} error="Perfil do usuário não encontrado" />;
-  }
+  // Nome do usuário com fallback
+  const userName = userProfile?.nome || user?.email?.split('@')[0] || 'Usuário';
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <DashboardHeader 
-          userName={userProfile?.nome || 'Usuário'} 
+          userName={userName} 
           onLogout={onLogout}
         />
 
@@ -94,6 +84,8 @@ const DashboardLayout = ({
           isActiveTrial={isActiveTrial}
           onRunAdded={onRunAdded}
           onStatusChange={onStatusChange}
+          profileLoading={profileLoading}
+          runsLoading={runsLoading}
         />
       </div>
     </div>

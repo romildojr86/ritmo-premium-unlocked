@@ -4,6 +4,7 @@ import FreeUserDashboard from '@/components/dashboard/FreeUserDashboard';
 import PremiumUserDashboard from '@/components/dashboard/PremiumUserDashboard';
 import TrialWarning from '@/components/dashboard/TrialWarning';
 import ExpiredTrialWarning from '@/components/dashboard/ExpiredTrialWarning';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Run {
   id: string;
@@ -42,6 +43,8 @@ interface DashboardContentProps {
   isActiveTrial: boolean;
   onRunAdded: () => void;
   onStatusChange: () => void;
+  profileLoading: boolean;
+  runsLoading: boolean;
 }
 
 const DashboardContent = ({
@@ -54,8 +57,29 @@ const DashboardContent = ({
   isFree,
   isActiveTrial,
   onRunAdded,
-  onStatusChange
+  onStatusChange,
+  profileLoading,
+  runsLoading
 }: DashboardContentProps) => {
+  // Se ainda está carregando o perfil, mostra dashboard básico com loading
+  if (profileLoading && !userProfile) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Carregando seus dados...</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+              <span className="ml-3 text-gray-600">Preparando seu dashboard...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Aviso de Trial Expirado */}
