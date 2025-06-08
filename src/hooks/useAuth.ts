@@ -46,6 +46,8 @@ export const useAuth = () => {
         console.log('=== Iniciando getUser ===');
         const { data: { session } } = await supabase.auth.getSession();
         
+        console.log('auth.session', session);
+        
         if (!session?.user) {
           console.log('Nenhuma sessão encontrada');
           setUser(null);
@@ -80,6 +82,7 @@ export const useAuth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('=== Auth state change ===', event, session?.user?.email);
+        console.log('auth.session', session);
         
         if (event === 'SIGNED_IN' && session) {
           setLoading(true);

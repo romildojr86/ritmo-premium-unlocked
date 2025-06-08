@@ -50,8 +50,9 @@ const Dashboard = () => {
     plano: userProfile?.plano,
     expira_em: userProfile?.expira_em
   });
-  console.log('user status', userProfile?.status);
-  console.log('user plano', userProfile?.plano);
+  console.log('user.status', userProfile?.status);
+  console.log('user.plano', userProfile?.plano);
+  console.log('user.expira_em', userProfile?.expira_em);
   console.log('🏃 Runs loading:', runsLoading);
   console.log('⏰ Is expired:', isExpired);
   console.log('⏰ Loading timeout:', loadingTimeout);
@@ -74,18 +75,14 @@ const Dashboard = () => {
   const isPremium = userProfile?.status === 'premium' || userProfile?.status === 'vitalicio';
   const isFree = userProfile?.status === 'free';
   
-  // Verificar se é trial premium ativo - corrigindo a lógica
-  const isActiveTrial = userProfile?.plano === 'trial' && 
-                       userProfile?.status === 'premium' &&
-                       userProfile?.expira_em && 
-                       new Date(userProfile.expira_em) > new Date();
+  // Simplificando a lógica do trial ativo - corrigindo o problema principal
+  const isActiveTrial = userProfile?.status === 'premium' && userProfile?.plano === 'trial';
 
-  console.log('🔍 Trial check:', {
-    plano: userProfile?.plano,
+  console.log('🔍 Trial check simplificado:', {
     status: userProfile?.status,
-    expira_em: userProfile?.expira_em,
+    plano: userProfile?.plano,
     isActiveTrial,
-    dateComparison: userProfile?.expira_em ? new Date(userProfile.expira_em) > new Date() : 'no date'
+    expira_em: userProfile?.expira_em
   });
 
   // Se ainda está carregando a autenticação
@@ -128,7 +125,7 @@ const Dashboard = () => {
           />
         )}
 
-        {/* Aviso de Trial Premium Ativo - corrigindo a condição */}
+        {/* Aviso de Trial Premium Ativo - corrigindo a condição para mostrar sempre que for trial premium */}
         {!isExpired && isActiveTrial && userProfile?.expira_em && (
           <TrialWarning expiresAt={userProfile.expira_em} />
         )}
