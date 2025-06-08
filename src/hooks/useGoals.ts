@@ -1,7 +1,7 @@
-
 import { useEffect } from 'react';
 import { goalsService } from '@/services/goalsService';
 import { useGoalsState } from './useGoalsState';
+import type { Goals } from '@/services/goalsService';
 
 export type { Goals } from '@/services/goalsService';
 
