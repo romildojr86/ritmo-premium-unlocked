@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [hasGoals, setHasGoals] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchGoals();
@@ -45,8 +47,11 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
   const fetchGoals = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
+        console.log('⚠️ Usuário não autenticado ao carregar metas');
         setLoading(false);
         return;
       }
@@ -58,7 +63,8 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Erro ao buscar metas:', error);
+        console.error('❌ Erro ao buscar metas:', error);
+        setError('Erro ao carregar metas. Tente novamente.');
         return;
       }
 
@@ -66,9 +72,14 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
         setGoals(data);
         setFormData(data);
         setHasGoals(true);
+        console.log('✅ Metas carregadas:', data);
+      } else {
+        console.log('📝 Nenhuma meta encontrada - usando valores padrão');
+        // Manter valores zerados quando não há metas
       }
     } catch (error) {
-      console.error('Erro ao buscar metas:', error);
+      console.error('💥 Erro fatal ao buscar metas:', error);
+      setError('Erro ao carregar metas. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -77,6 +88,7 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
   const handleSaveGoals = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    setError(null);
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -112,7 +124,8 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
       setHasGoals(true);
       toast.success('Metas salvas com sucesso!');
     } catch (error) {
-      console.error('Erro ao salvar metas:', error);
+      console.error('💥 Erro ao salvar metas:', error);
+      setError('Erro ao salvar metas. Tente novamente.');
       toast.error('Erro ao salvar metas');
     } finally {
       setSaving(false);
@@ -134,15 +147,10 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
     return `Você está a ${remaining.toFixed(1)}km de bater sua meta ${period}! 🏃‍♂️`;
   };
 
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Carregando metas...</div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const handleRetry = () => {
+    console.log('🔄 Tentando recarregar metas...');
+    fetchGoals();
+  };
 
   return (
     <div className="space-y-6">
@@ -152,6 +160,20 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
           <CardTitle className="text-green-600">🎯 Minhas Metas</CardTitle>
         </CardHeader>
         <CardContent>
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-600 text-sm">{error}</p>
+              <Button 
+                onClick={handleRetry}
+                variant="outline" 
+                size="sm" 
+                className="mt-2"
+              >
+                Tentar novamente
+              </Button>
+            </div>
+          )}
+          
           <form onSubmit={handleSaveGoals} className="space-y-4">
             <div className="grid md:grid-cols-3 gap-4">
               <div>
@@ -162,7 +184,7 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
                   step="0.1"
                   min="0"
                   placeholder="15.0"
-                  value={formData.meta_semanal}
+                  value={formData.meta_semanal || ''}
                   onChange={(e) => setFormData({ ...formData, meta_semanal: Number(e.target.value) })}
                   required
                 />
@@ -175,7 +197,7 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
                   step="0.1"
                   min="0"
                   placeholder="60.0"
-                  value={formData.meta_mensal}
+                  value={formData.meta_mensal || ''}
                   onChange={(e) => setFormData({ ...formData, meta_mensal: Number(e.target.value) })}
                   required
                 />
@@ -188,7 +210,7 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
                   step="0.1"
                   min="0"
                   placeholder="720.0"
-                  value={formData.meta_anual}
+                  value={formData.meta_anual || ''}
                   onChange={(e) => setFormData({ ...formData, meta_anual: Number(e.target.value) })}
                   required
                 />
@@ -197,7 +219,7 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
             <Button 
               type="submit" 
               className="w-full bg-green-600 hover:bg-green-700"
-              disabled={saving}
+              disabled={saving || loading}
             >
               {saving ? 'Salvando...' : 'Salvar Metas'}
             </Button>
@@ -205,7 +227,7 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
         </CardContent>
       </Card>
 
-      {/* Progresso das Metas - sempre mostrar */}
+      {/* Progresso das Metas */}
       <div className="grid gap-4 md:grid-cols-3">
         {/* Meta Semanal */}
         <Card>
