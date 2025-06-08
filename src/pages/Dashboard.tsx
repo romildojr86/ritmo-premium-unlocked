@@ -9,14 +9,28 @@ import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import FreeUserDashboard from '@/components/dashboard/FreeUserDashboard';
 import PremiumUserDashboard from '@/components/dashboard/PremiumUserDashboard';
 import LoadingSpinner from '@/components/dashboard/LoadingSpinner';
+import DashboardError from '@/components/dashboard/DashboardError';
 import TrialWarning from '@/components/dashboard/TrialWarning';
 import ExpiredTrialWarning from '@/components/dashboard/ExpiredTrialWarning';
 
 const Dashboard = () => {
   const { user, handleLogout, loading: authLoading } = useAuth();
-  const { userProfile, refreshProfile } = useUserProfile(user);
-  const { runs, stats, loading, refetchRuns } = useRuns(user);
+  const { userProfile, loading: profileLoading, error: profileError, refreshProfile } = useUserProfile(user);
+  const { runs, stats, loading: runsLoading, refetchRuns } = useRuns(user);
   const { isExpired } = useExpirationCheck(user, userProfile);
+
+  console.log('=== Dashboard render ===');
+  console.log('🔐 Auth loading:', authLoading);
+  console.log('👤 User:', user?.email);
+  console.log('📊 Profile loading:', profileLoading);
+  console.log('📊 Profile error:', profileError);
+  console.log('📊 User profile:', {
+    status: userProfile?.status,
+    plano: userProfile?.plano,
+    expira_em: userProfile?.expira_em
+  });
+  console.log('🏃 Runs loading:', runsLoading);
+  console.log('⏰ Is expired:', isExpired);
 
   const handleRunAdded = () => {
     refetchRuns();
@@ -24,6 +38,11 @@ const Dashboard = () => {
   };
 
   const handleStatusChange = () => {
+    refreshProfile();
+  };
+
+  const handleRetry = () => {
+    console.log('🔄 Usuário solicitou retry');
     refreshProfile();
   };
 
@@ -35,8 +54,24 @@ const Dashboard = () => {
                        userProfile?.expira_em && 
                        new Date(userProfile.expira_em) > new Date();
 
-  if (authLoading || loading) {
+  // Se ainda está carregando a autenticação
+  if (authLoading) {
     return <LoadingSpinner />;
+  }
+
+  // Se houve erro ao carregar o perfil
+  if (profileError && !profileLoading) {
+    return <DashboardError onRetry={handleRetry} error={profileError} />;
+  }
+
+  // Se ainda está carregando o perfil ou runs (apenas na primeira carga)
+  if (profileLoading || runsLoading) {
+    return <LoadingSpinner />;
+  }
+
+  // Se não há perfil de usuário após o carregamento
+  if (!userProfile && !profileLoading) {
+    return <DashboardError onRetry={handleRetry} error="Perfil do usuário não encontrado" />;
   }
 
   return (
