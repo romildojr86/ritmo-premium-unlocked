@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { goalsService } from '@/services/goalsService';
 import { useGoalsState } from './useGoalsState';
@@ -39,16 +40,19 @@ export const useGoals = (onGoalsSaved?: (goals: Goals) => void) => {
   };
 
   const saveGoals = async (goalData: Goals) => {
+    console.log('🎯 Iniciando salvamento de metas:', goalData);
     setSaving(true);
     setError(null);
 
     const { success, error: saveError } = await goalsService.saveGoals(goalData, hasGoals);
 
     if (success) {
+      console.log('✅ Metas salvas com sucesso');
       setGoals(goalData);
       setHasGoals(true);
       onGoalsSaved?.(goalData);
     } else if (saveError) {
+      console.error('❌ Erro ao salvar metas:', saveError);
       setError(saveError);
     }
 

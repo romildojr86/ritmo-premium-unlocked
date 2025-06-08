@@ -21,11 +21,33 @@ const GoalsFormFields = ({
   loading 
 }: GoalsFormFieldsProps) => {
   const handleInputChange = (field: keyof Goals, value: string) => {
-    onFormDataChange({ ...formData, [field]: Number(value) });
+    // Convert empty string to 0, otherwise parse as float
+    const numValue = value === '' ? 0 : parseFloat(value) || 0;
+    onFormDataChange({ ...formData, [field]: numValue });
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate that all values are valid numbers (including 0)
+    const isValid = 
+      !isNaN(formData.meta_semanal) && 
+      !isNaN(formData.meta_mensal) && 
+      !isNaN(formData.meta_anual) &&
+      formData.meta_semanal >= 0 &&
+      formData.meta_mensal >= 0 &&
+      formData.meta_anual >= 0;
+
+    if (isValid) {
+      console.log('📝 Enviando metas:', formData);
+      onSubmit(e);
+    } else {
+      console.error('❌ Valores inválidos nas metas:', formData);
+    }
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={handleFormSubmit} className="space-y-4">
       <div className="grid md:grid-cols-3 gap-4">
         <div>
           <Label htmlFor="meta_semanal">Meta Semanal (km)</Label>
@@ -35,9 +57,8 @@ const GoalsFormFields = ({
             step="0.1"
             min="0"
             placeholder="15.0"
-            value={formData.meta_semanal || ''}
+            value={formData.meta_semanal === 0 ? '' : formData.meta_semanal}
             onChange={(e) => handleInputChange('meta_semanal', e.target.value)}
-            required
           />
         </div>
         <div>
@@ -48,9 +69,8 @@ const GoalsFormFields = ({
             step="0.1"
             min="0"
             placeholder="60.0"
-            value={formData.meta_mensal || ''}
+            value={formData.meta_mensal === 0 ? '' : formData.meta_mensal}
             onChange={(e) => handleInputChange('meta_mensal', e.target.value)}
-            required
           />
         </div>
         <div>
@@ -61,9 +81,8 @@ const GoalsFormFields = ({
             step="0.1"
             min="0"
             placeholder="720.0"
-            value={formData.meta_anual || ''}
+            value={formData.meta_anual === 0 ? '' : formData.meta_anual}
             onChange={(e) => handleInputChange('meta_anual', e.target.value)}
-            required
           />
         </div>
       </div>

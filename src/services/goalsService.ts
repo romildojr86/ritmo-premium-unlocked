@@ -45,16 +45,20 @@ export const goalsService = {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
-        toast.error('Usuário não autenticado');
+        console.error('❌ Usuário não autenticado ao salvar metas');
+        toast.error('❌ Erro ao salvar metas. Tente novamente.');
         return { success: false, error: 'Usuário não autenticado' };
       }
 
+      // Ensure all values are valid numbers
       const goalRecord = {
         user_id: session.user.id,
-        meta_semanal: Number(goalData.meta_semanal),
-        meta_mensal: Number(goalData.meta_mensal),
-        meta_anual: Number(goalData.meta_anual)
+        meta_semanal: Number(goalData.meta_semanal) || 0,
+        meta_mensal: Number(goalData.meta_mensal) || 0,
+        meta_anual: Number(goalData.meta_anual) || 0
       };
+
+      console.log('💾 Salvando metas:', goalRecord);
 
       let error;
       if (hasGoals) {
@@ -70,15 +74,18 @@ export const goalsService = {
         error = insertError;
       }
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro no Supabase ao salvar metas:', error);
+        throw error;
+      }
 
-      toast.success('Metas salvas com sucesso!');
+      console.log('✅ Metas salvas com sucesso no Supabase');
+      toast.success('✅ Metas salvas com sucesso!');
       return { success: true, error: null };
     } catch (error) {
       console.error('💥 Erro ao salvar metas:', error);
-      const errorMessage = 'Erro ao salvar metas. Tente novamente.';
-      toast.error('Erro ao salvar metas');
-      return { success: false, error: errorMessage };
+      toast.error('❌ Erro ao salvar metas. Tente novamente.');
+      return { success: false, error: 'Erro ao salvar metas. Tente novamente.' };
     }
   }
 };
