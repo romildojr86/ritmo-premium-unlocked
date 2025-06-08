@@ -5,9 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from 'sonner';
 import { User } from '@supabase/supabase-js';
 
+interface UserWithAdmin extends User {
+  isAdmin?: boolean;
+}
+
 export const useAuth = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserWithAdmin | null>(null);
 
   useEffect(() => {
     const getUser = async () => {
@@ -17,7 +21,23 @@ export const useAuth = () => {
         return;
       }
       
-      setUser(session.user);
+      // Buscar informações do usuário incluindo o campo admin
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('admin')
+        .eq('id', session.user.id)
+        .single();
+
+      if (error) {
+        console.error('Erro ao buscar dados do usuário:', error);
+      }
+
+      const userWithAdmin = {
+        ...session.user,
+        isAdmin: userData?.admin || false
+      };
+
+      setUser(userWithAdmin);
     };
 
     getUser();

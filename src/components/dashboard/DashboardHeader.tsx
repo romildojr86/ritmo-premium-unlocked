@@ -14,16 +14,15 @@ const DashboardHeader = ({ userName, onLogout }: DashboardHeaderProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  const isAdmin = user?.email === 'romildo@romildo.online';
+  const isAdmin = user?.isAdmin || false;
 
   const handleAdminAccess = () => {
-    console.log('Clicou no botão admin, usuário:', user?.email);
-    console.log('Navegando para /adm');
-    navigate('/adm');
+    console.log('Clicou no botão admin, usuário admin:', user?.isAdmin);
+    console.log('Navegando para /admin-dashboard');
+    navigate('/admin-dashboard');
   };
 
-  console.log('DashboardHeader - usuário atual:', user?.email);
-  console.log('DashboardHeader - é admin?', isAdmin);
+  console.log('DashboardHeader - usuário admin?', isAdmin);
 
   return (
     <div className="flex justify-between items-center">
@@ -35,7 +34,7 @@ const DashboardHeader = ({ userName, onLogout }: DashboardHeaderProps) => {
             className="bg-blue-600 hover:bg-blue-700 text-white"
             size="sm"
           >
-            👉 Painel Admin
+            👑 Painel Admin
           </Button>
         )}
         <Button 

@@ -68,6 +68,7 @@ export type Database = {
       }
       users: {
         Row: {
+          admin: boolean
           assinou_em: string | null
           criado_em: string | null
           email: string
@@ -79,6 +80,7 @@ export type Database = {
           telefone: string | null
         }
         Insert: {
+          admin?: boolean
           assinou_em?: string | null
           criado_em?: string | null
           email: string
@@ -90,6 +92,7 @@ export type Database = {
           telefone?: string | null
         }
         Update: {
+          admin?: boolean
           assinou_em?: string | null
           criado_em?: string | null
           email?: string
