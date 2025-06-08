@@ -23,7 +23,7 @@ const AdminUsersTable = ({ users }: AdminUsersTableProps) => {
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     try {
-      return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
+      return format(new Date(dateString), 'dd/MM/yyyy HH:mm', { locale: ptBR });
     } catch {
       return '-';
     }
@@ -47,11 +47,11 @@ const AdminUsersTable = ({ users }: AdminUsersTableProps) => {
   const getStatusText = (status?: string) => {
     switch (status) {
       case 'premium':
-        return 'Premium';
+        return 'Ativo';
       case 'free':
         return 'Gratuito';
       case 'expired_trial':
-        return 'Trial Expirado';
+        return 'Expirado';
       default:
         return status || '-';
     }
@@ -63,27 +63,28 @@ const AdminUsersTable = ({ users }: AdminUsersTableProps) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
+              <TableHead>ID</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Plano</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Assinou em</TableHead>
+              <TableHead>Criado em</TableHead>
               <TableHead>Expira em</TableHead>
-              <TableHead>Cadastrado em</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                   Nenhum usuário encontrado
                 </TableCell>
               </TableRow>
             ) : (
               users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.nome}</TableCell>
-                  <TableCell>{user.email}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {user.id.substring(0, 8)}...
+                  </TableCell>
+                  <TableCell className="font-medium">{user.email}</TableCell>
                   <TableCell>
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
                       {user.plano || 'Não definido'}
@@ -94,9 +95,8 @@ const AdminUsersTable = ({ users }: AdminUsersTableProps) => {
                       {getStatusText(user.status)}
                     </span>
                   </TableCell>
-                  <TableCell>{formatDate(user.assinou_em)}</TableCell>
-                  <TableCell>{formatDate(user.expira_em)}</TableCell>
                   <TableCell>{formatDate(user.criado_em)}</TableCell>
+                  <TableCell>{formatDate(user.expira_em)}</TableCell>
                 </TableRow>
               ))
             )}

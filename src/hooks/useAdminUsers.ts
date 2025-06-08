@@ -19,6 +19,7 @@ export const useAdminUsers = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [planFilter, setPlanFilter] = useState('todos');
+  const [statusFilter, setStatusFilter] = useState('todos');
 
   const fetchUsers = async () => {
     try {
@@ -42,15 +43,13 @@ export const useAdminUsers = () => {
     fetchUsers();
   }, []);
 
-  // Filtrar usuários baseado na busca e filtro de plano
+  // Filtrar usuários baseado na busca e filtros
   const filteredUsers = users.filter(user => {
-    const matchesSearch = 
-      user.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPlan = planFilter === 'todos' || user.plano === planFilter;
+    const matchesStatus = statusFilter === 'todos' || user.status === statusFilter;
     
-    return matchesSearch && matchesPlan;
+    return matchesSearch && matchesPlan && matchesStatus;
   });
 
   // Contadores
@@ -65,6 +64,8 @@ export const useAdminUsers = () => {
     setSearchTerm,
     planFilter,
     setPlanFilter,
+    statusFilter,
+    setStatusFilter,
     stats: {
       total: totalUsers,
       premium: premiumUsers,
