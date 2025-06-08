@@ -1,9 +1,9 @@
 
 import { useEffect } from 'react';
-import { goalsService, Goals } from '@/services/goalsService';
+import { goalsService } from '@/services/goalsService';
 import { useGoalsState } from './useGoalsState';
 
-export { Goals } from '@/services/goalsService';
+export type { Goals } from '@/services/goalsService';
 
 export const useGoals = (onGoalsSaved?: (goals: Goals) => void) => {
   const {
