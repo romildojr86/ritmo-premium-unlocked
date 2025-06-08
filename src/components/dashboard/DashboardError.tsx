@@ -15,10 +15,10 @@ const DashboardError = ({ onRetry, error }: DashboardErrorProps) => {
         <div className="bg-white rounded-lg shadow-lg p-8">
           <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Oops! Algo deu errado
+            ❌ Ocorreu um erro ao carregar seu dashboard
           </h2>
           <p className="text-gray-600 mb-6">
-            Não conseguimos carregar seus dados do dashboard. 
+            Não conseguimos carregar seus dados. 
             {error && (
               <span className="block mt-2 text-sm text-red-600">
                 Erro: {error}
@@ -30,7 +30,7 @@ const DashboardError = ({ onRetry, error }: DashboardErrorProps) => {
             className="bg-green-500 hover:bg-green-600 text-white"
           >
             <RefreshCw className="h-4 w-4 mr-2" />
-            Tentar Novamente
+            Clique aqui para recarregar
           </Button>
         </div>
       </div>
