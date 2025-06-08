@@ -1,5 +1,4 @@
 
-
 import { Check, Target, BarChart, TrendingUp, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,24 +31,12 @@ const Index = () => {
     }
   ];
 
-  const scrollToPlans = () => {
-    document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   const handleSignUp = () => {
     navigate('/auth');
   };
 
   const handleSignIn = () => {
     navigate('/auth');
-  };
-
-  const handleMonthlySubscription = () => {
-    window.open('https://pay.cakto.com.br/3a6vgf2_422206', '_blank');
-  };
-
-  const handleLifetimeSubscription = () => {
-    window.open('https://pay.cakto.com.br/u3aagrc_422143', '_blank');
   };
 
   return (
@@ -65,7 +52,7 @@ const Index = () => {
             Registre suas corridas, acompanhe metas semanais e veja sua evolução de forma simples e motivadora.
           </p>
           
-          {/* Novo texto destacado */}
+          {/* Texto destacado mantido */}
           <div className="mb-8 max-w-2xl mx-auto">
             <p className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
               Comece com acesso total por 7 dias.
@@ -75,7 +62,7 @@ const Index = () => {
             </p>
           </div>
 
-          {/* Novos botões */}
+          {/* Botões mantidos */}
           <div className="flex flex-col items-center gap-4">
             <Button 
               onClick={handleSignUp}
@@ -130,158 +117,33 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Plans Section */}
-      <section id="plans" className="py-20 px-4 bg-white">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Escolha o plano ideal para você
-            </h2>
-            <p className="text-xl text-gray-600">
-              Comece grátis ou acelere sua evolução com os planos Premium
+      {/* Nova seção de call-to-action centralizada */}
+      <section className="py-20 px-4 bg-white">
+        <div className="container mx-auto max-w-4xl text-center">
+          <div className="max-w-2xl mx-auto">
+            <p className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+              Comece com acesso total por 7 dias.
+            </p>
+            <p className="text-lg md:text-xl text-gray-600 mb-8">
+              Sem compromisso, sem cartão, sem pegadinhas. Aproveite os recursos Premium com liberdade.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Free Plan */}
-            <Card className="border-2 border-gray-200 hover:border-gray-300 transition-all duration-200">
-              <CardHeader className="text-center pb-6">
-                <CardTitle className="text-2xl font-bold text-gray-900 mb-2">
-                  Gratuito
-                </CardTitle>
-                <div className="text-4xl font-bold text-gray-900 mb-2">
-                  R$ 0
-                  <span className="text-lg font-normal text-gray-600">/sempre</span>
-                </div>
-                <p className="text-gray-600">Para começar sua jornada</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700">Até 3 corridas por semana</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700">Visualização da semana atual</span>
-                  </li>
-                  <li className="flex items-center gap-3 opacity-50">
-                    <span className="w-5 h-5 flex-shrink-0 text-gray-400">❌</span>
-                    <span className="text-gray-400">Sem metas ou gráficos</span>
-                  </li>
-                </ul>
-                <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 text-lg font-semibold">
-                  Criar Conta Grátis
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Monthly Plan */}
-            <Card className="border-2 border-green-200 hover:border-green-300 transition-all duration-200">
-              <CardHeader className="text-center pb-6">
-                <CardTitle className="text-2xl font-bold text-gray-900 mb-2">
-                  Premium Mensal
-                </CardTitle>
-                <div className="text-4xl font-bold text-green-600 mb-2">
-                  R$ 9,70
-                  <span className="text-lg font-normal text-gray-600">/mês</span>
-                </div>
-                <p className="text-gray-600">Flexibilidade total</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700">Corridas ilimitadas</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700">Histórico completo</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700">Metas e desafios</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700">Gráficos detalhados</span>
-                  </li>
-                </ul>
-                <Button onClick={handleMonthlySubscription} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 text-lg font-semibold">
-                  Assinar Mensal
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Lifetime Plan */}
-            <Card className="border-2 border-green-500 relative hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-green-500 text-white px-4 py-1 text-sm font-semibold">
-                  🔥 MAIS POPULAR
-                </Badge>
-              </div>
-              <CardHeader className="text-center pb-6 pt-8">
-                <CardTitle className="text-2xl font-bold text-gray-900 mb-2">
-                  Premium Vitalício
-                </CardTitle>
-                <div className="text-4xl font-bold text-green-600 mb-2">
-                  R$ 47
-                  <span className="text-lg font-normal text-gray-600">/única vez</span>
-                </div>
-                <p className="text-gray-600">Acesso completo para sempre</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700">Corridas ilimitadas</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700">Histórico completo</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700">Metas e desafios</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700">Gráficos detalhados</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700">Suporte prioritário</span>
-                  </li>
-                </ul>
-                <Button onClick={handleLifetimeSubscription} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 text-lg font-semibold transition-all duration-200 transform hover:scale-105">
-                  Quero Acesso Vitalício
-                </Button>
-              </CardContent>
-            </Card>
+          <div className="flex flex-col items-center gap-4">
+            <Button 
+              onClick={handleSignUp}
+              size="lg" 
+              className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 max-w-md w-full"
+            >
+              👉 Criar conta gratuita com 7 dias de acesso Premium
+            </Button>
+            <button 
+              onClick={handleSignIn}
+              className="text-gray-600 hover:text-gray-800 underline text-base font-medium transition-all duration-200"
+            >
+              Já tenho uma conta
+            </button>
           </div>
-        </div>
-      </section>
-
-      {/* Special Offer Section */}
-      <section className="py-16 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Oferta de Lançamento – Vitalício por R$47
-          </h2>
-          <p className="text-xl mb-6 opacity-90">
-            Apenas para os 100 primeiros usuários que acreditam no futuro da corrida
-          </p>
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <Users className="w-6 h-6" />
-            <span className="text-lg font-semibold">Restam poucas vagas disponíveis</span>
-          </div>
-          <Button 
-            onClick={handleLifetimeSubscription}
-            size="lg" 
-            className="bg-white text-green-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-200 transform hover:scale-105"
-          >
-            Garantir Minha Vaga Agora
-          </Button>
         </div>
       </section>
 
@@ -330,4 +192,3 @@ const Index = () => {
 };
 
 export default Index;
-
