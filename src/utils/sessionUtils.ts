@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { User } from '@supabase/supabase-js';
 import { fetchUserAdminStatus } from '@/services/adminService';
-import { saveUserToCache } from './authCache';
+import { saveUserToCache, isCacheValid } from './authCache';
 
 interface UserWithAdmin extends User {
   isAdmin?: boolean;
@@ -12,15 +12,18 @@ export const initializeUserSession = async (): Promise<UserWithAdmin | null> => 
   try {
     console.log('📡 Verificando sessão no Supabase...');
     
+    // Verifica se há cache válido antes de fazer requisição
+    if (isCacheValid()) {
+      console.log('💾 Cache válido encontrado - usando cache');
+      return null; // Retorna null para usar o cache
+    }
+    
     const { data: { session }, error } = await supabase.auth.getSession();
     
     if (error) {
       console.error('❌ Erro ao obter sessão:', error);
-      return null;
+      throw error;
     }
-
-    console.log('auth.session', session);
-    console.log('user.id', session?.user?.id);
 
     if (!session?.user) {
       console.log('❌ Nenhuma sessão encontrada');
@@ -37,7 +40,7 @@ export const initializeUserSession = async (): Promise<UserWithAdmin | null> => 
       isAdmin
     };
     
-    console.log('Usuário final com admin:', userWithAdmin);
+    console.log('Usuário final com admin:', userWithAdmin.email, 'isAdmin:', isAdmin);
     
     // Salva no cache
     saveUserToCache(userWithAdmin);
@@ -45,25 +48,56 @@ export const initializeUserSession = async (): Promise<UserWithAdmin | null> => 
     return userWithAdmin;
   } catch (error) {
     console.error('💥 Erro na inicialização da sessão:', error);
-    return null;
+    throw error;
   }
 };
 
 export const handleAuthStateChange = async (session: any): Promise<UserWithAdmin | null> => {
   if (!session?.user) return null;
 
-  // Buscar status de admin
-  const isAdmin = await fetchUserAdminStatus(session.user.id);
-  
-  const userWithAdmin = {
-    ...session.user,
-    isAdmin
-  };
-  
-  console.log('Usuário após auth change com admin:', userWithAdmin);
-  
-  // Salva no cache
-  saveUserToCache(userWithAdmin);
-  
-  return userWithAdmin;
+  try {
+    // Buscar status de admin
+    const isAdmin = await fetchUserAdminStatus(session.user.id);
+    
+    const userWithAdmin = {
+      ...session.user,
+      isAdmin
+    };
+    
+    console.log('Usuário após auth change:', userWithAdmin.email, 'isAdmin:', isAdmin);
+    
+    // Salva no cache
+    saveUserToCache(userWithAdmin);
+    
+    return userWithAdmin;
+  } catch (error) {
+    console.error('💥 Erro ao processar mudança de auth:', error);
+    return {
+      ...session.user,
+      isAdmin: false
+    };
+  }
+};
+
+// Função para forçar atualização da sessão
+export const refreshUserSession = async (): Promise<UserWithAdmin | null> => {
+  try {
+    console.log('🔄 Forçando atualização da sessão...');
+    
+    const { data: { session }, error } = await supabase.auth.refreshSession();
+    
+    if (error) {
+      console.error('❌ Erro ao atualizar sessão:', error);
+      return null;
+    }
+
+    if (session?.user) {
+      return await handleAuthStateChange(session);
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('💥 Erro ao atualizar sessão:', error);
+    return null;
+  }
 };

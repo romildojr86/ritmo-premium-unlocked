@@ -13,13 +13,13 @@ export const useDashboard = () => {
   const { isExpired } = useExpirationCheck(user, userProfile);
   const [dataTimeout, setDataTimeout] = React.useState(false);
 
-  // Timeout de 2 segundos para dados do perfil
+  // Timeout de 3 segundos para dados do perfil (aumentado conforme solicitado)
   React.useEffect(() => {
     if (user && (profileLoading || runsLoading)) {
       const timer = setTimeout(() => {
-        console.log('⏰ Timeout de 2s atingido para dados do perfil');
+        console.log('⏰ Timeout de 3s atingido para dados do perfil');
         setDataTimeout(true);
-      }, 2000);
+      }, 3000);
 
       return () => clearTimeout(timer);
     }
@@ -31,6 +31,20 @@ export const useDashboard = () => {
       setDataTimeout(false);
     }
   }, [profileLoading, runsLoading]);
+
+  // Listener para detectar volta do foco e recarregar dados se necessário
+  React.useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user && dataTimeout) {
+        console.log('👀 Aba voltou ao foco com timeout ativo - recarregando dados...');
+        setDataTimeout(false);
+        refreshProfile();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [user, dataTimeout, refreshProfile]);
 
   // Logs de debug
   console.log('=== Dashboard render ===');
@@ -44,9 +58,6 @@ export const useDashboard = () => {
     plano: userProfile?.plano,
     expira_em: userProfile?.expira_em
   });
-  console.log('user.status', userProfile?.status);
-  console.log('user.plano', userProfile?.plano);
-  console.log('user.expira_em', userProfile?.expira_em);
   console.log('🏃 Runs loading:', runsLoading);
   console.log('⏰ Is expired:', isExpired);
   console.log('⏰ Data timeout:', dataTimeout);
