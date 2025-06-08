@@ -71,6 +71,7 @@ export type Database = {
           assinou_em: string | null
           criado_em: string | null
           email: string
+          expira_em: string | null
           id: string
           nome: string
           plano: string | null
@@ -81,6 +82,7 @@ export type Database = {
           assinou_em?: string | null
           criado_em?: string | null
           email: string
+          expira_em?: string | null
           id?: string
           nome: string
           plano?: string | null
@@ -91,6 +93,7 @@ export type Database = {
           assinou_em?: string | null
           criado_em?: string | null
           email?: string
+          expira_em?: string | null
           id?: string
           nome?: string
           plano?: string | null

@@ -9,6 +9,9 @@ interface UserProfile {
   nome: string;
   email: string;
   status: string;
+  plano?: string;
+  assinou_em?: string;
+  expira_em?: string;
 }
 
 export const useUserProfile = (user: User | null) => {
@@ -36,5 +39,11 @@ export const useUserProfile = (user: User | null) => {
     }
   };
 
-  return { userProfile };
+  const refreshProfile = () => {
+    if (user) {
+      fetchUserProfile(user.id);
+    }
+  };
+
+  return { userProfile, refreshProfile };
 };

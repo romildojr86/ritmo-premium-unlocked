@@ -55,22 +55,22 @@ const SignUpForm = ({ onSwitchToSignIn }: SignUpFormProps) => {
       }
 
       if (authData.user) {
-        // 2. Inserir dados adicionais na tabela users
+        // 2. Inserir dados na tabela users (o trigger configurará automaticamente o trial premium)
         const { error: insertError } = await supabase
           .from('users')
           .insert({
             id: authData.user.id,
             nome: formData.nome,
             email: formData.email,
-            telefone: formData.telefone || null,
-            status: 'free'
+            telefone: formData.telefone || null
+            // status, plano, assinou_em e expira_em serão configurados automaticamente pelo trigger
           });
 
         if (insertError) {
           console.error('Erro ao inserir dados do usuário:', insertError);
           toast.error('Conta criada, mas houve um erro ao salvar dados adicionais');
         } else {
-          toast.success('Conta criada com sucesso! Verifique seu e-mail para confirmar.');
+          toast.success('Conta criada com sucesso! Seu trial premium de 7 dias foi ativado. Verifique seu e-mail para confirmar.');
         }
       }
     } catch (error) {
@@ -94,6 +94,9 @@ const SignUpForm = ({ onSwitchToSignIn }: SignUpFormProps) => {
         <CardTitle className="text-2xl font-bold text-gray-900">
           Crie sua conta grátis
         </CardTitle>
+        <p className="text-gray-600 mt-2">
+          7 dias de acesso Premium inclusos
+        </p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -159,7 +162,7 @@ const SignUpForm = ({ onSwitchToSignIn }: SignUpFormProps) => {
             disabled={isLoading}
             className="w-full bg-green-500 hover:bg-green-600 text-white py-3 text-lg font-semibold"
           >
-            {isLoading ? 'Criando conta...' : 'Criar Conta'}
+            {isLoading ? 'Criando conta...' : '🎉 Criar Conta Premium (7 dias grátis)'}
           </Button>
         </form>
 
