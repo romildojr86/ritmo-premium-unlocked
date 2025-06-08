@@ -22,7 +22,6 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
   const [metaAnual, setMetaAnual] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [hasGoals, setHasGoals] = useState(false);
 
   useEffect(() => {
     fetchGoals();
@@ -46,7 +45,6 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
 
       if (error && error.code !== 'PGRST116') {
         console.error('❌ Erro ao buscar metas:', error);
-        toast.error('❌ Erro ao carregar metas');
         return;
       }
 
@@ -55,14 +53,11 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
         setMetaSemanal(data.meta_semanal || 0);
         setMetaMensal(data.meta_mensal || 0);
         setMetaAnual(data.meta_anual || 0);
-        setHasGoals(true);
       } else {
         console.log('📝 Nenhuma meta encontrada - usando valores padrão');
-        setHasGoals(false);
       }
     } catch (error) {
       console.error('💥 Erro fatal ao buscar metas:', error);
-      toast.error('❌ Erro ao carregar metas');
     } finally {
       setLoading(false);
     }
@@ -88,9 +83,8 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
         meta_anual: metaAnual
       };
 
-      console.log('💾 Fazendo upsert das metas:', goalRecord);
+      console.log('💾 Salvando metas:', goalRecord);
 
-      // Usar upsert para inserir ou atualizar
       const { error } = await supabase
         .from('metas')
         .upsert(goalRecord, {
@@ -105,9 +99,7 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
 
       console.log('✅ Metas salvas com sucesso no Supabase');
       toast.success('✅ Metas salvas com sucesso!');
-      setHasGoals(true);
       
-      // Chama callback se fornecido
       onGoalsSaved?.({
         meta_semanal: metaSemanal,
         meta_mensal: metaMensal,
@@ -119,22 +111,6 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
       toast.error('❌ Erro ao salvar metas');
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleInputChange = (field: keyof Goals, value: string) => {
-    const numericValue = parseFloat(value) || 0;
-    
-    switch (field) {
-      case 'meta_semanal':
-        setMetaSemanal(numericValue);
-        break;
-      case 'meta_mensal':
-        setMetaMensal(numericValue);
-        break;
-      case 'meta_anual':
-        setMetaAnual(numericValue);
-        break;
     }
   };
 
@@ -151,12 +127,11 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
             id="meta_semanal"
             name="meta_semanal"
             type="number"
-            step="any"
+            step="0.1"
             min="0"
-            required
             placeholder="15.0"
             value={metaSemanal}
-            onChange={(e) => handleInputChange('meta_semanal', e.target.value)}
+            onChange={(e) => setMetaSemanal(Number(e.target.value) || 0)}
           />
         </div>
         <div>
@@ -165,12 +140,11 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
             id="meta_mensal"
             name="meta_mensal"
             type="number"
-            step="any"
+            step="0.1"
             min="0"
-            required
             placeholder="60.0"
             value={metaMensal}
-            onChange={(e) => handleInputChange('meta_mensal', e.target.value)}
+            onChange={(e) => setMetaMensal(Number(e.target.value) || 0)}
           />
         </div>
         <div>
@@ -179,12 +153,11 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
             id="meta_anual"
             name="meta_anual"
             type="number"
-            step="any"
+            step="0.1"
             min="0"
-            required
             placeholder="720.0"
             value={metaAnual}
-            onChange={(e) => handleInputChange('meta_anual', e.target.value)}
+            onChange={(e) => setMetaAnual(Number(e.target.value) || 0)}
           />
         </div>
       </div>
