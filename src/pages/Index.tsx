@@ -1,4 +1,3 @@
-
 import { Check, Target, BarChart, TrendingUp, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,7 +51,7 @@ const Index = () => {
             Registre suas corridas, acompanhe metas semanais e veja sua evolução de forma simples e motivadora.
           </p>
           
-          {/* Texto destacado mantido */}
+          {/* Texto destacado */}
           <div className="mb-8 max-w-2xl mx-auto">
             <p className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
               Comece com acesso total por 7 dias.
@@ -62,23 +61,21 @@ const Index = () => {
             </p>
           </div>
 
-          {/* Botões mantidos */}
+          {/* Botão único e link de login */}
           <div className="flex flex-col items-center gap-4">
             <Button 
               onClick={handleSignUp}
               size="lg" 
               className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 max-w-md w-full"
             >
-              Criar minha conta gratuita com 7 dias de acesso Premium
+              👉 Criar conta gratuita com acesso Premium
             </Button>
-            <Button 
+            <button 
               onClick={handleSignIn}
-              variant="ghost" 
-              size="lg" 
-              className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 px-6 py-3 text-base font-medium rounded-lg transition-all duration-200"
+              className="text-gray-600 hover:text-gray-800 text-base font-medium transition-all duration-200 flex items-center gap-2"
             >
-              Já tenho uma conta
-            </Button>
+              🔓 Já tenho uma conta – Fazer login
+            </button>
           </div>
         </div>
       </section>
@@ -113,36 +110,6 @@ const Index = () => {
                 </CardContent>
               </Card>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Nova seção de call-to-action centralizada */}
-      <section className="py-20 px-4 bg-white">
-        <div className="container mx-auto max-w-4xl text-center">
-          <div className="max-w-2xl mx-auto">
-            <p className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-              Comece com acesso total por 7 dias.
-            </p>
-            <p className="text-lg md:text-xl text-gray-600 mb-8">
-              Sem compromisso, sem cartão, sem pegadinhas. Aproveite os recursos Premium com liberdade.
-            </p>
-          </div>
-
-          <div className="flex flex-col items-center gap-4">
-            <Button 
-              onClick={handleSignUp}
-              size="lg" 
-              className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 max-w-md w-full"
-            >
-              👉 Criar conta gratuita com 7 dias de acesso Premium
-            </Button>
-            <button 
-              onClick={handleSignIn}
-              className="text-gray-600 hover:text-gray-800 underline text-base font-medium transition-all duration-200"
-            >
-              Já tenho uma conta
-            </button>
           </div>
         </div>
       </section>
