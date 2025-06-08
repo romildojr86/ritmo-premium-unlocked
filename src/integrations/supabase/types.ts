@@ -73,6 +73,7 @@ export type Database = {
           email: string
           id: string
           nome: string
+          plano: string | null
           status: string | null
           telefone: string | null
         }
@@ -82,6 +83,7 @@ export type Database = {
           email: string
           id?: string
           nome: string
+          plano?: string | null
           status?: string | null
           telefone?: string | null
         }
@@ -91,6 +93,7 @@ export type Database = {
           email?: string
           id?: string
           nome?: string
+          plano?: string | null
           status?: string | null
           telefone?: string | null
         }

@@ -1,4 +1,5 @@
 
+
 import { Check, Target, BarChart, TrendingUp, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +36,11 @@ const Index = () => {
     document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleTestFree = () => {
+  const handleSignUp = () => {
+    navigate('/auth');
+  };
+
+  const handleSignIn = () => {
     navigate('/auth');
   };
 
@@ -59,21 +64,33 @@ const Index = () => {
           <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
             Registre suas corridas, acompanhe metas semanais e veja sua evolução de forma simples e motivadora.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          
+          {/* Novo texto destacado */}
+          <div className="mb-8 max-w-2xl mx-auto">
+            <p className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+              Comece com acesso total por 7 dias.
+            </p>
+            <p className="text-lg md:text-xl text-gray-600">
+              Sem compromisso, sem cartão, sem pegadinhas. Aproveite os recursos Premium com liberdade.
+            </p>
+          </div>
+
+          {/* Novos botões */}
+          <div className="flex flex-col items-center gap-4">
             <Button 
-              onClick={handleTestFree}
+              onClick={handleSignUp}
               size="lg" 
-              className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-200 transform hover:scale-105"
+              className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 max-w-md w-full"
             >
-              Testar Grátis Agora
+              Criar minha conta gratuita com 7 dias de acesso Premium
             </Button>
             <Button 
-              onClick={scrollToPlans}
-              variant="outline" 
+              onClick={handleSignIn}
+              variant="ghost" 
               size="lg" 
-              className="border-green-500 text-green-600 hover:bg-green-50 px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-200"
+              className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 px-6 py-3 text-base font-medium rounded-lg transition-all duration-200"
             >
-              Assinar Premium
+              Já tenho uma conta
             </Button>
           </div>
         </div>
@@ -313,3 +330,4 @@ const Index = () => {
 };
 
 export default Index;
+
