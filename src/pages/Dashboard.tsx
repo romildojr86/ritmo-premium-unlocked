@@ -31,8 +31,7 @@ const Dashboard = () => {
   const isFree = userProfile?.status === 'free';
   
   // Verificar se é trial premium ativo
-  const isActiveTrial = userProfile?.status === 'premium' && 
-                       userProfile?.plano === 'trial' && 
+  const isActiveTrial = userProfile?.plano === 'trial' && 
                        userProfile?.expira_em && 
                        new Date(userProfile.expira_em) > new Date();
 
