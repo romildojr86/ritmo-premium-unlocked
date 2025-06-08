@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,7 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
     meta_mensal: 0,
     meta_anual: 0
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [hasGoals, setHasGoals] = useState(false);
 
@@ -45,14 +44,18 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
 
   const fetchGoals = async () => {
     try {
+      setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return;
+      if (!session?.user) {
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('metas')
         .select('*')
         .eq('user_id', session.user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Erro ao buscar metas:', error);
@@ -202,76 +205,74 @@ const GoalsSection = ({ stats }: GoalsSectionProps) => {
         </CardContent>
       </Card>
 
-      {/* Progresso das Metas */}
-      {hasGoals && (
-        <div className="grid gap-4 md:grid-cols-3">
-          {/* Meta Semanal */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Meta Semanal</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span>Progresso</span>
-                  <span>{stats.thisWeek.toFixed(1)} / {goals.meta_semanal.toFixed(1)} km</span>
-                </div>
-                <Progress 
-                  value={calculateProgress(stats.thisWeek, goals.meta_semanal)} 
-                  className="h-2"
-                />
-                <p className="text-sm text-green-600 font-medium">
-                  {getProgressMessage(stats.thisWeek, goals.meta_semanal, 'semanal')}
-                </p>
+      {/* Progresso das Metas - sempre mostrar */}
+      <div className="grid gap-4 md:grid-cols-3">
+        {/* Meta Semanal */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Meta Semanal</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between text-sm">
+                <span>Progresso</span>
+                <span>{stats.thisWeek.toFixed(1)} / {goals.meta_semanal.toFixed(1)} km</span>
               </div>
-            </CardContent>
-          </Card>
+              <Progress 
+                value={calculateProgress(stats.thisWeek, goals.meta_semanal)} 
+                className="h-2"
+              />
+              <p className="text-sm text-green-600 font-medium">
+                {getProgressMessage(stats.thisWeek, goals.meta_semanal, 'semanal')}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Meta Mensal */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Meta Mensal</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span>Progresso</span>
-                  <span>{stats.thisMonth.toFixed(1)} / {goals.meta_mensal.toFixed(1)} km</span>
-                </div>
-                <Progress 
-                  value={calculateProgress(stats.thisMonth, goals.meta_mensal)} 
-                  className="h-2"
-                />
-                <p className="text-sm text-green-600 font-medium">
-                  {getProgressMessage(stats.thisMonth, goals.meta_mensal, 'mensal')}
-                </p>
+        {/* Meta Mensal */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Meta Mensal</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between text-sm">
+                <span>Progresso</span>
+                <span>{stats.thisMonth.toFixed(1)} / {goals.meta_mensal.toFixed(1)} km</span>
               </div>
-            </CardContent>
-          </Card>
+              <Progress 
+                value={calculateProgress(stats.thisMonth, goals.meta_mensal)} 
+                className="h-2"
+              />
+              <p className="text-sm text-green-600 font-medium">
+                {getProgressMessage(stats.thisMonth, goals.meta_mensal, 'mensal')}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Meta Anual */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Meta Anual</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span>Progresso</span>
-                  <span>{stats.thisYear.toFixed(1)} / {goals.meta_anual.toFixed(1)} km</span>
-                </div>
-                <Progress 
-                  value={calculateProgress(stats.thisYear, goals.meta_anual)} 
-                  className="h-2"
-                />
-                <p className="text-sm text-green-600 font-medium">
-                  {getProgressMessage(stats.thisYear, goals.meta_anual, 'anual')}
-                </p>
+        {/* Meta Anual */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Meta Anual</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between text-sm">
+                <span>Progresso</span>
+                <span>{stats.thisYear.toFixed(1)} / {goals.meta_anual.toFixed(1)} km</span>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+              <Progress 
+                value={calculateProgress(stats.thisYear, goals.meta_anual)} 
+                className="h-2"
+              />
+              <p className="text-sm text-green-600 font-medium">
+                {getProgressMessage(stats.thisYear, goals.meta_anual, 'anual')}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

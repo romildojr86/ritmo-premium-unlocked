@@ -23,17 +23,30 @@ const MotivationalPanel = () => {
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
   const [stats, setStats] = useState<Stats>({ thisWeek: 0, thisYear: 0 });
   const [goals, setGoals] = useState<Goals | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Inicializar com dados vazios para renderização imediata
+    initializeEmptyData();
     fetchData();
   }, []);
 
+  const initializeEmptyData = () => {
+    const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+    const emptyWeeklyData = weekDays.map(day => ({ day, km: 0 }));
+    setWeeklyData(emptyWeeklyData);
+  };
+
   const fetchData = async () => {
     try {
+      setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return;
+      if (!session?.user) {
+        setLoading(false);
+        return;
+      }
 
+      // Executar todas as buscas em paralelo
       await Promise.all([
         fetchWeeklyData(session.user.id),
         fetchStats(session.user.id),
@@ -47,90 +60,105 @@ const MotivationalPanel = () => {
   };
 
   const fetchWeeklyData = async (userId: string) => {
-    // Buscar dados da semana atual usando SQL correto
-    const { data, error } = await supabase
-      .from('corridas')
-      .select('data, distancia_km')
-      .eq('user_id', userId)
-      .gte('data', new Date(new Date().setDate(new Date().getDate() - new Date().getDay())).toISOString().split('T')[0])
-      .lt('data', new Date(new Date().setDate(new Date().getDate() - new Date().getDay() + 7)).toISOString().split('T')[0]);
-
-    if (error) {
-      console.error('Erro ao buscar dados semanais:', error);
-      return;
-    }
-
-    // Inicializar dados da semana (Segunda a Domingo)
-    const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
-    const weeklyMap = new Map(weekDays.map(day => [day, 0]));
-
-    // Processar dados das corridas
-    data?.forEach(run => {
-      const runDate = new Date(run.data);
-      const dayOfWeek = runDate.getDay(); // 0 = domingo, 1 = segunda, etc
+    try {
+      const now = new Date();
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
       
-      // Mapear dias da semana corretamente
-      const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-      const dayName = dayNames[dayOfWeek];
-      
-      if (weeklyMap.has(dayName)) {
-        weeklyMap.set(dayName, weeklyMap.get(dayName)! + Number(run.distancia_km));
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 7);
+
+      const { data, error } = await supabase
+        .from('corridas')
+        .select('data, distancia_km')
+        .eq('user_id', userId)
+        .gte('data', startOfWeek.toISOString().split('T')[0])
+        .lt('data', endOfWeek.toISOString().split('T')[0]);
+
+      if (error) {
+        console.error('Erro ao buscar dados semanais:', error);
+        return;
       }
-    });
 
-    // Criar dados do gráfico na ordem Segunda a Domingo
-    const chartData = weekDays.map(day => ({
-      day,
-      km: weeklyMap.get(day) || 0
-    }));
+      // Inicializar dados da semana
+      const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+      const weeklyMap = new Map(weekDays.map(day => [day, 0]));
 
-    setWeeklyData(chartData);
+      // Processar dados das corridas
+      data?.forEach(run => {
+        const runDate = new Date(run.data);
+        const dayOfWeek = runDate.getDay();
+        const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        const dayName = dayNames[dayOfWeek];
+        
+        if (weeklyMap.has(dayName)) {
+          weeklyMap.set(dayName, weeklyMap.get(dayName)! + Number(run.distancia_km));
+        }
+      });
+
+      const chartData = weekDays.map(day => ({
+        day,
+        km: weeklyMap.get(day) || 0
+      }));
+
+      setWeeklyData(chartData);
+    } catch (error) {
+      console.error('Erro ao buscar dados semanais:', error);
+    }
   };
 
   const fetchStats = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('corridas')
-      .select('data, distancia_km')
-      .eq('user_id', userId);
+    try {
+      const { data, error } = await supabase
+        .from('corridas')
+        .select('data, distancia_km')
+        .eq('user_id', userId);
 
-    if (error) {
+      if (error) {
+        console.error('Erro ao buscar estatísticas:', error);
+        return;
+      }
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      const thisWeek = data
+        ?.filter(run => new Date(run.data) >= startOfWeek)
+        ?.reduce((sum, run) => sum + Number(run.distancia_km), 0) || 0;
+
+      const thisYear = data
+        ?.filter(run => new Date(run.data).getFullYear() === currentYear)
+        ?.reduce((sum, run) => sum + Number(run.distancia_km), 0) || 0;
+
+      setStats({ thisWeek, thisYear });
+    } catch (error) {
       console.error('Erro ao buscar estatísticas:', error);
-      return;
     }
-
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    
-    // Início da semana (domingo)
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay());
-    startOfWeek.setHours(0, 0, 0, 0);
-
-    const thisWeek = data
-      ?.filter(run => new Date(run.data) >= startOfWeek)
-      ?.reduce((sum, run) => sum + Number(run.distancia_km), 0) || 0;
-
-    const thisYear = data
-      ?.filter(run => new Date(run.data).getFullYear() === currentYear)
-      ?.reduce((sum, run) => sum + Number(run.distancia_km), 0) || 0;
-
-    setStats({ thisWeek, thisYear });
   };
 
   const fetchGoals = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('metas')
-      .select('meta_semanal')
-      .eq('user_id', userId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('metas')
+        .select('meta_semanal')
+        .eq('user_id', userId)
+        .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') {
+      if (error && error.code !== 'PGRST116') {
+        console.error('Erro ao buscar metas:', error);
+        return;
+      }
+
+      if (data) {
+        setGoals(data);
+      }
+    } catch (error) {
       console.error('Erro ao buscar metas:', error);
-      return;
-    }
-
-    if (data) {
-      setGoals(data);
     }
   };
 
@@ -159,20 +187,6 @@ const MotivationalPanel = () => {
       color: "hsl(var(--primary))",
     },
   };
-
-  if (loading) {
-    return (
-      <div className="grid gap-6 lg:grid-cols-3">
-        {[1, 2, 3].map((i) => (
-          <Card key={i}>
-            <CardContent className="p-6">
-              <div className="text-center">Carregando...</div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">

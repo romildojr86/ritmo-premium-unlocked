@@ -22,7 +22,7 @@ interface UserGoalsProgressProps {
 
 const UserGoalsProgress = ({ stats }: UserGoalsProgressProps) => {
   const [goals, setGoals] = useState<Goals | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchGoals();
@@ -30,14 +30,18 @@ const UserGoalsProgress = ({ stats }: UserGoalsProgressProps) => {
 
   const fetchGoals = async () => {
     try {
+      setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return;
+      if (!session?.user) {
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('metas')
         .select('meta_semanal, meta_mensal, meta_anual')
         .eq('user_id', session.user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Erro ao buscar metas:', error);
@@ -69,11 +73,15 @@ const UserGoalsProgress = ({ stats }: UserGoalsProgressProps) => {
     return `Você está a ${remaining.toFixed(1)}km de bater sua meta ${period}! 🏃‍♂️`;
   };
 
-  if (loading) {
+  // Renderizar sempre, mesmo sem metas
+  if (!goals && !loading) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Carregando metas...</div>
+        <CardHeader>
+          <CardTitle className="text-green-600">🎯 Metas do Usuário</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600">Defina suas metas para acompanhar seu progresso!</p>
         </CardContent>
       </Card>
     );
@@ -86,7 +94,21 @@ const UserGoalsProgress = ({ stats }: UserGoalsProgressProps) => {
           <CardTitle className="text-green-600">🎯 Metas do Usuário</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-600">Defina suas metas para acompanhar seu progresso!</p>
+          <div className="space-y-6">
+            {/* Placeholders enquanto carrega */}
+            {['Semanal', 'Mensal', 'Anual'].map((period) => (
+              <div key={period} className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <h4 className="font-medium">Meta {period}</h4>
+                  <span className="text-sm text-gray-600">0.0 / 0.0 km</span>
+                </div>
+                <Progress value={0} className="h-3" />
+                <p className="text-sm text-green-600 font-medium">
+                  Defina sua meta {period.toLowerCase()} para acompanhar o progresso!
+                </p>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     );

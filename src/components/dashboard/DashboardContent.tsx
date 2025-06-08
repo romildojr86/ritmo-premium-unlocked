@@ -4,7 +4,6 @@ import FreeUserDashboard from '@/components/dashboard/FreeUserDashboard';
 import PremiumUserDashboard from '@/components/dashboard/PremiumUserDashboard';
 import TrialWarning from '@/components/dashboard/TrialWarning';
 import ExpiredTrialWarning from '@/components/dashboard/ExpiredTrialWarning';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Run {
   id: string;
@@ -61,42 +60,24 @@ const DashboardContent = ({
   profileLoading,
   runsLoading
 }: DashboardContentProps) => {
-  // Se ainda está carregando o perfil, mostra dashboard básico com loading
-  if (profileLoading && !userProfile) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Carregando seus dados...</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-              <span className="ml-3 text-gray-600">Preparando seu dashboard...</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
+  // Renderizar sempre, sem aguardar userProfile
   return (
     <>
-      {/* Aviso de Trial Expirado */}
-      {isExpired && user && (
+      {/* Aviso de Trial Expirado - só mostrar se tiver userProfile confirmado */}
+      {isExpired && user && userProfile && (
         <ExpiredTrialWarning 
           userId={user.id} 
           onStatusChange={onStatusChange}
         />
       )}
 
-      {/* Aviso de Trial Premium Ativo */}
+      {/* Aviso de Trial Premium Ativo - só mostrar se tiver userProfile confirmado */}
       {!isExpired && isActiveTrial && userProfile?.expira_em && (
         <TrialWarning expiresAt={userProfile.expira_em} />
       )}
 
-      {/* Conteúdo baseado no status */}
-      {isFree && (
+      {/* Conteúdo baseado no status - usar fallback se ainda carregando */}
+      {(isFree || (!userProfile && !profileLoading)) && (
         <FreeUserDashboard 
           stats={stats}
           onRunAdded={onRunAdded}
