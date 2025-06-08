@@ -14,11 +14,40 @@ export const useAuth = () => {
   const [user, setUser] = useState<UserWithAdmin | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchUserAdminStatus = async (userId: string) => {
+    try {
+      console.log('Buscando status admin para usuário ID:', userId);
+      
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('admin')
+        .eq('id', userId)
+        .single();
+
+      console.log('Resultado da busca admin:', { userData, error });
+      
+      if (error) {
+        console.error('Erro ao buscar dados do usuário:', error);
+        return false;
+      }
+      
+      const isAdmin = userData?.admin === true;
+      console.log('Status admin final:', isAdmin);
+      return isAdmin;
+    } catch (error) {
+      console.error('Erro na busca do status admin:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     const getUser = async () => {
       try {
+        console.log('=== Iniciando getUser ===');
         const { data: { session } } = await supabase.auth.getSession();
+        
         if (!session?.user) {
+          console.log('Nenhuma sessão encontrada');
           setUser(null);
           setLoading(false);
           return;
@@ -27,27 +56,16 @@ export const useAuth = () => {
         console.log('Usuário logado:', session.user.email);
         console.log('ID do usuário:', session.user.id);
         
-        // Buscar informações do usuário incluindo o campo admin
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('admin')
-          .eq('id', session.user.id)
-          .single();
-
-        console.log('Dados do usuário no banco:', userData);
-        console.log('Erro na busca:', error);
-
-        if (error) {
-          console.error('Erro ao buscar dados do usuário:', error);
-          setUser(session.user);
-        } else {
-          const userWithAdmin = {
-            ...session.user,
-            isAdmin: userData?.admin || false
-          };
-          console.log('Usuário com admin:', userWithAdmin.isAdmin);
-          setUser(userWithAdmin);
-        }
+        // Buscar status de admin
+        const isAdmin = await fetchUserAdminStatus(session.user.id);
+        
+        const userWithAdmin = {
+          ...session.user,
+          isAdmin
+        };
+        
+        console.log('Usuário final com admin:', userWithAdmin);
+        setUser(userWithAdmin);
       } catch (error) {
         console.error('Erro na autenticação:', error);
         setUser(null);
@@ -61,28 +79,26 @@ export const useAuth = () => {
     // Escutar mudanças na autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event, session?.user?.email);
+        console.log('=== Auth state change ===', event, session?.user?.email);
         
         if (event === 'SIGNED_IN' && session) {
-          // Buscar dados do admin quando o usuário fizer login
-          const { data: userData, error } = await supabase
-            .from('users')
-            .select('admin')
-            .eq('id', session.user.id)
-            .single();
-
-          console.log('Dados admin após login:', userData);
-
+          setLoading(true);
+          
+          // Buscar status de admin
+          const isAdmin = await fetchUserAdminStatus(session.user.id);
+          
           const userWithAdmin = {
             ...session.user,
-            isAdmin: userData?.admin || false
+            isAdmin
           };
-          console.log('isAdmin após login:', userWithAdmin.isAdmin);
+          
+          console.log('Usuário após login com admin:', userWithAdmin);
           setUser(userWithAdmin);
+          setLoading(false);
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 

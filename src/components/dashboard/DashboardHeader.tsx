@@ -14,17 +14,24 @@ const DashboardHeader = ({ userName, onLogout }: DashboardHeaderProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  const isAdmin = user?.isAdmin || false;
+  const isAdmin = user?.isAdmin === true;
 
   const handleAdminAccess = () => {
-    console.log('Clicou no botão admin');
+    console.log('=== Clique no botão admin ===');
     console.log('Usuário:', user?.email);
     console.log('isAdmin:', user?.isAdmin);
-    console.log('Navegando para /admin-dashboard');
-    navigate('/admin-dashboard');
+    
+    if (isAdmin) {
+      console.log('✅ Navegando para /admin-dashboard');
+      navigate('/admin-dashboard');
+    } else {
+      console.log('❌ Usuário não é admin, não navegando');
+    }
   };
 
-  console.log('DashboardHeader - Renderizando com isAdmin:', isAdmin);
+  console.log('=== DashboardHeader render ===');
+  console.log('User:', user?.email);
+  console.log('isAdmin:', isAdmin);
 
   return (
     <div className="flex justify-between items-center">

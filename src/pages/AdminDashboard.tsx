@@ -10,27 +10,31 @@ const AdminDashboardPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('AdminDashboard - loading:', loading);
-    console.log('AdminDashboard - user:', user);
-    console.log('AdminDashboard - isAdmin:', user?.isAdmin);
+    console.log('=== AdminDashboard useEffect ===');
+    console.log('Loading:', loading);
+    console.log('User:', user);
+    console.log('User isAdmin:', user?.isAdmin);
 
-    if (loading) return; // Aguardar o carregamento da autenticação
+    if (loading) {
+      console.log('Ainda carregando, aguardando...');
+      return;
+    }
 
     if (!user) {
-      console.log('Usuário não logado, redirecionando...');
+      console.log('Usuário não logado, redirecionando para home');
       toast.error('Acesso restrito. Apenas administradores podem acessar esta área.');
       navigate('/');
       return;
     }
 
     if (!user.isAdmin) {
-      console.log('Usuário não é admin, redirecionando...');
+      console.log('Usuário logado mas não é admin, redirecionando para home');
       toast.error('Acesso restrito. Apenas administradores podem acessar esta área.');
       navigate('/');
       return;
     }
 
-    console.log('Acesso autorizado ao painel admin');
+    console.log('✅ Acesso autorizado ao painel admin');
   }, [user, loading, navigate]);
 
   // Loading state enquanto verifica a autenticação
@@ -39,6 +43,7 @@ const AdminDashboardPage = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Verificando acesso...</h1>
+          <p className="text-gray-600">Carregando dados do usuário...</p>
         </div>
       </div>
     );
