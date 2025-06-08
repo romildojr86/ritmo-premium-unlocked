@@ -40,16 +40,54 @@ export const useAuth = () => {
     }
   };
 
+  const revalidateSession = async () => {
+    try {
+      console.log('🔄 Revalidando sessão...');
+      
+      // Primeiro tenta pegar a sessão atual
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('❌ Erro ao obter sessão:', sessionError);
+        throw sessionError;
+      }
+
+      console.log('📋 Sessão atual:', session?.user?.email || 'nenhuma');
+
+      // Se não há sessão, tenta refrescar
+      if (!session) {
+        console.log('🔄 Tentando refresh da sessão...');
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+        
+        if (refreshError) {
+          console.error('❌ Erro no refresh da sessão:', refreshError);
+          throw refreshError;
+        }
+
+        if (refreshData.session) {
+          console.log('✅ Sessão refreshada com sucesso');
+          return refreshData.session;
+        }
+      }
+
+      return session;
+    } catch (error) {
+      console.error('💥 Erro fatal na revalidação da sessão:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     const getUser = async () => {
       try {
         console.log('=== Iniciando getUser ===');
-        const { data: { session } } = await supabase.auth.getSession();
         
+        // Revalida a sessão primeiro
+        const session = await revalidateSession();
         console.log('auth.session', session);
         
         if (!session?.user) {
-          console.log('Nenhuma sessão encontrada');
+          console.log('Nenhuma sessão encontrada após revalidação');
           setUser(null);
           setLoading(false);
           return;
@@ -78,6 +116,21 @@ export const useAuth = () => {
 
     getUser();
 
+    // Fallback timeout de 5 segundos
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.log('⏰ Timeout de 5s atingido - forçando revalidação');
+        revalidateSession().then((session) => {
+          if (!session) {
+            console.log('❌ Sessão inválida após timeout - redirecionando para login');
+            toast.error('Sua sessão expirou. Faça login novamente.');
+            navigate('/');
+          }
+          setLoading(false);
+        });
+      }
+    }, 5000);
+
     // Escutar mudanças na autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -101,12 +154,38 @@ export const useAuth = () => {
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setLoading(false);
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log('🔄 Token refreshed automaticamente');
         }
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  // Função para detectar visibilidade da página e revalidar quando necessário
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && user) {
+        console.log('👁️ Página ficou visível - revalidando sessão');
+        revalidateSession().then((session) => {
+          if (!session) {
+            console.log('❌ Sessão perdida após voltar à página - fazendo logout');
+            handleLogout();
+          }
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user]);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -114,9 +193,9 @@ export const useAuth = () => {
       toast.error('Erro ao fazer logout');
     } else {
       toast.success('Logout realizado com sucesso!');
-      navigate('/auth');
+      navigate('/');
     }
   };
 
-  return { user, handleLogout, loading };
+  return { user, handleLogout, loading, revalidateSession };
 };

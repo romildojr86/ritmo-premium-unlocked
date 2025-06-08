@@ -14,13 +14,14 @@ import TrialWarning from '@/components/dashboard/TrialWarning';
 import ExpiredTrialWarning from '@/components/dashboard/ExpiredTrialWarning';
 
 const Dashboard = () => {
-  const { user, handleLogout, loading: authLoading } = useAuth();
+  const { user, handleLogout, loading: authLoading, revalidateSession } = useAuth();
   const { userProfile, loading: profileLoading, error: profileError, refreshProfile } = useUserProfile(user);
   const { runs, stats, loading: runsLoading, refetchRuns } = useRuns(user);
   const { isExpired } = useExpirationCheck(user, userProfile);
   const [loadingTimeout, setLoadingTimeout] = React.useState(false);
+  const [sessionTimeout, setSessionTimeout] = React.useState(false);
 
-  // Timeout de 3 segundos para evitar carregamento infinito
+  // Timeout de 3 segundos para dados do perfil
   React.useEffect(() => {
     const timer = setTimeout(() => {
       if (profileLoading || runsLoading) {
@@ -32,12 +33,32 @@ const Dashboard = () => {
     return () => clearTimeout(timer);
   }, [profileLoading, runsLoading]);
 
+  // Timeout de 5 segundos para sessão inválida
+  React.useEffect(() => {
+    if (authLoading) {
+      const sessionTimer = setTimeout(() => {
+        console.log('⏰ Timeout de sessão atingido - verificando se precisa redirecionar');
+        if (authLoading && !user) {
+          console.log('❌ Sessão ainda carregando após 5s sem usuário - redirecionando');
+          setSessionTimeout(true);
+          toast.error('Sua sessão expirou. Faça login novamente.');
+          window.location.href = '/';
+        }
+      }, 5000);
+
+      return () => clearTimeout(sessionTimer);
+    }
+  }, [authLoading, user]);
+
   // Reset timeout quando dados carregam
   React.useEffect(() => {
     if (!profileLoading && !runsLoading) {
       setLoadingTimeout(false);
     }
-  }, [profileLoading, runsLoading]);
+    if (!authLoading) {
+      setSessionTimeout(false);
+    }
+  }, [profileLoading, runsLoading, authLoading]);
 
   console.log('=== Dashboard render ===');
   console.log('user.id', user?.id);
@@ -56,6 +77,7 @@ const Dashboard = () => {
   console.log('🏃 Runs loading:', runsLoading);
   console.log('⏰ Is expired:', isExpired);
   console.log('⏰ Loading timeout:', loadingTimeout);
+  console.log('⏰ Session timeout:', sessionTimeout);
 
   const handleRunAdded = () => {
     refetchRuns();
@@ -66,9 +88,21 @@ const Dashboard = () => {
     refreshProfile();
   };
 
-  const handleRetry = () => {
+  const handleRetry = async () => {
     console.log('🔄 Usuário solicitou retry');
     setLoadingTimeout(false);
+    setSessionTimeout(false);
+    
+    // Tenta revalidar a sessão primeiro
+    if (revalidateSession) {
+      const session = await revalidateSession();
+      if (!session) {
+        toast.error('Sua sessão expirou. Faça login novamente.');
+        window.location.href = '/';
+        return;
+      }
+    }
+    
     refreshProfile();
   };
 
@@ -85,9 +119,14 @@ const Dashboard = () => {
     expira_em: userProfile?.expira_em
   });
 
-  // Se ainda está carregando a autenticação
-  if (authLoading) {
+  // Se ainda está carregando a autenticação ou houve timeout de sessão
+  if (authLoading && !sessionTimeout) {
     return <LoadingSpinner />;
+  }
+
+  // Se houve timeout de sessão, redireciona
+  if (sessionTimeout) {
+    return null; // Vai redirecionar
   }
 
   // Se houve erro ao carregar o perfil OU timeout
