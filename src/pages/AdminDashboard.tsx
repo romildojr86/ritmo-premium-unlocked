@@ -10,19 +10,27 @@ const AdminDashboardPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('AdminDashboard - loading:', loading);
+    console.log('AdminDashboard - user:', user);
+    console.log('AdminDashboard - isAdmin:', user?.isAdmin);
+
     if (loading) return; // Aguardar o carregamento da autenticação
 
     if (!user) {
+      console.log('Usuário não logado, redirecionando...');
       toast.error('Acesso restrito. Apenas administradores podem acessar esta área.');
       navigate('/');
       return;
     }
 
     if (!user.isAdmin) {
+      console.log('Usuário não é admin, redirecionando...');
       toast.error('Acesso restrito. Apenas administradores podem acessar esta área.');
       navigate('/');
       return;
     }
+
+    console.log('Acesso autorizado ao painel admin');
   }, [user, loading, navigate]);
 
   // Loading state enquanto verifica a autenticação

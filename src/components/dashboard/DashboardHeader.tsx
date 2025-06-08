@@ -17,12 +17,14 @@ const DashboardHeader = ({ userName, onLogout }: DashboardHeaderProps) => {
   const isAdmin = user?.isAdmin || false;
 
   const handleAdminAccess = () => {
-    console.log('Clicou no botão admin, usuário admin:', user?.isAdmin);
+    console.log('Clicou no botão admin');
+    console.log('Usuário:', user?.email);
+    console.log('isAdmin:', user?.isAdmin);
     console.log('Navegando para /admin-dashboard');
     navigate('/admin-dashboard');
   };
 
-  console.log('DashboardHeader - usuário admin?', isAdmin);
+  console.log('DashboardHeader - Renderizando com isAdmin:', isAdmin);
 
   return (
     <div className="flex justify-between items-center">
