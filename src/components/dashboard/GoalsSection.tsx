@@ -1,13 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import GoalsForm from './GoalsForm';
 import GoalsProgressGrid from './GoalsProgressGrid';
-
-interface Goals {
-  meta_semanal: number;
-  meta_mensal: number;
-  meta_anual: number;
-}
+import { useGoals } from '@/hooks/useGoals';
 
 interface Stats {
   thisWeek: number;
@@ -20,13 +15,9 @@ interface GoalsSectionProps {
 }
 
 const GoalsSection = ({ stats }: GoalsSectionProps) => {
-  const [goals, setGoals] = useState<Goals>({
-    meta_semanal: 0,
-    meta_mensal: 0,
-    meta_anual: 0
-  });
+  const { goals, setGoals } = useGoals();
 
-  const handleGoalsSaved = (savedGoals: Goals) => {
+  const handleGoalsSaved = (savedGoals: any) => {
     setGoals(savedGoals);
   };
 
