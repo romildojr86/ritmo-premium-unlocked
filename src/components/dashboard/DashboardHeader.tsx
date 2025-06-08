@@ -17,7 +17,7 @@ const DashboardHeader = ({ userName, onLogout }: DashboardHeaderProps) => {
   const isAdmin = user?.email === 'romildo@romildo.online';
 
   const handleAdminAccess = () => {
-    navigate('/admin');
+    navigate('/adm');
   };
 
   return (
