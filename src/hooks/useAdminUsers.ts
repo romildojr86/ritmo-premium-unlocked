@@ -12,6 +12,7 @@ interface AdminUser {
   assinou_em?: string;
   expira_em?: string;
   criado_em?: string;
+  admin?: boolean;
 }
 
 export const useAdminUsers = () => {
@@ -55,7 +56,7 @@ export const useAdminUsers = () => {
   // Contadores
   const totalUsers = users.length;
   const premiumUsers = users.filter(user => user.status === 'premium').length;
-  const freeUsers = users.filter(user => user.status === 'free').length;
+  const freeUsers = users.filter(user => user.status === 'free' || !user.status).length;
 
   return {
     users: filteredUsers,
