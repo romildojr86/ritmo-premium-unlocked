@@ -17,9 +17,9 @@ interface GoalsFormFieldsProps {
 }
 
 const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
-  const [metaSemanal, setMetaSemanal] = useState(0);
-  const [metaMensal, setMetaMensal] = useState(0);
-  const [metaAnual, setMetaAnual] = useState(0);
+  const [metaSemanal, setMetaSemanal] = useState<number>(0);
+  const [metaMensal, setMetaMensal] = useState<number>(0);
+  const [metaAnual, setMetaAnual] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [hasGoals, setHasGoals] = useState(false);
@@ -35,7 +35,6 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
         console.log('⚠️ Usuário não autenticado ao carregar metas');
-        setLoading(false);
         return;
       }
 
@@ -47,7 +46,7 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
 
       if (error && error.code !== 'PGRST116') {
         console.error('❌ Erro ao buscar metas:', error);
-        toast.error('❌ Erro ao carregar metas. Tente novamente.');
+        toast.error('❌ Erro ao carregar metas');
         return;
       }
 
@@ -63,13 +62,13 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
       }
     } catch (error) {
       console.error('💥 Erro fatal ao buscar metas:', error);
-      toast.error('❌ Erro ao carregar metas. Tente novamente.');
+      toast.error('❌ Erro ao carregar metas');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmitMetas = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     try {
@@ -78,7 +77,7 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
         console.error('❌ Usuário não autenticado ao salvar metas');
-        toast.error('❌ Erro ao salvar metas. Tente novamente.');
+        toast.error('❌ Erro ao salvar metas');
         return;
       }
 
@@ -89,25 +88,18 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
         meta_anual: metaAnual
       };
 
-      console.log('💾 Salvando metas:', goalRecord);
+      console.log('💾 Fazendo upsert das metas:', goalRecord);
 
-      let error;
-      if (hasGoals) {
-        const { error: updateError } = await supabase
-          .from('metas')
-          .update(goalRecord)
-          .eq('user_id', session.user.id);
-        error = updateError;
-      } else {
-        const { error: insertError } = await supabase
-          .from('metas')
-          .insert(goalRecord);
-        error = insertError;
-      }
+      // Usar upsert para inserir ou atualizar
+      const { error } = await supabase
+        .from('metas')
+        .upsert(goalRecord, {
+          onConflict: 'user_id'
+        });
 
       if (error) {
         console.error('❌ Erro no Supabase ao salvar metas:', error);
-        toast.error('❌ Erro ao salvar metas. Tente novamente.');
+        toast.error('❌ Erro ao salvar metas');
         return;
       }
 
@@ -124,9 +116,25 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
 
     } catch (error) {
       console.error('💥 Erro ao salvar metas:', error);
-      toast.error('❌ Erro ao salvar metas. Tente novamente.');
+      toast.error('❌ Erro ao salvar metas');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleInputChange = (field: keyof Goals, value: string) => {
+    const numericValue = parseFloat(value) || 0;
+    
+    switch (field) {
+      case 'meta_semanal':
+        setMetaSemanal(numericValue);
+        break;
+      case 'meta_mensal':
+        setMetaMensal(numericValue);
+        break;
+      case 'meta_anual':
+        setMetaAnual(numericValue);
+        break;
     }
   };
 
@@ -135,7 +143,7 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
   }
 
   return (
-    <form onSubmit={handleSubmitMetas} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid md:grid-cols-3 gap-4">
         <div>
           <Label htmlFor="meta_semanal">Meta Semanal (km)</Label>
@@ -143,11 +151,12 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
             id="meta_semanal"
             name="meta_semanal"
             type="number"
-            step="0.1"
+            step="any"
             min="0"
+            required
             placeholder="15.0"
             value={metaSemanal}
-            onChange={(e) => setMetaSemanal(Number(e.target.value) || 0)}
+            onChange={(e) => handleInputChange('meta_semanal', e.target.value)}
           />
         </div>
         <div>
@@ -156,11 +165,12 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
             id="meta_mensal"
             name="meta_mensal"
             type="number"
-            step="0.1"
+            step="any"
             min="0"
+            required
             placeholder="60.0"
             value={metaMensal}
-            onChange={(e) => setMetaMensal(Number(e.target.value) || 0)}
+            onChange={(e) => handleInputChange('meta_mensal', e.target.value)}
           />
         </div>
         <div>
@@ -169,11 +179,12 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
             id="meta_anual"
             name="meta_anual"
             type="number"
-            step="0.1"
+            step="any"
             min="0"
+            required
             placeholder="720.0"
             value={metaAnual}
-            onChange={(e) => setMetaAnual(Number(e.target.value) || 0)}
+            onChange={(e) => handleInputChange('meta_anual', e.target.value)}
           />
         </div>
       </div>
