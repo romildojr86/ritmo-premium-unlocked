@@ -33,13 +33,11 @@ const ExpiredTrialWarning = ({ userId, onStatusChange }: ExpiredTrialWarningProp
   };
 
   const handleMonthlyPlan = () => {
-    // Link para Cakto mensal - substitua pela URL real
-    window.open('#', '_blank');
+    window.open('https://pay.cakto.com.br/3a6vgf2_422206', '_blank');
   };
 
   const handleAnnualPlan = () => {
-    // Link para Cakto anual - substitua pela URL real
-    window.open('#', '_blank');
+    window.open('https://pay.cakto.com.br/yrisucd_425684', '_blank');
   };
 
   return (
