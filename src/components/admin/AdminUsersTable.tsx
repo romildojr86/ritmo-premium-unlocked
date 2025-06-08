@@ -76,7 +76,7 @@ const AdminUsersTable = ({ users }: AdminUsersTableProps) => {
   };
 
   const getExpirationDisplay = (expiraEm?: string) => {
-    if (!expiraEm) return '-';
+    if (!expiraEm) return { text: '-', className: 'text-gray-900' };
     
     try {
       const expirationDate = new Date(expiraEm);
