@@ -21,30 +21,22 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
   const fetchGoals = useCallback(async () => {
     console.log('[useGoalsForm] user.id:', user?.id);
     
-    // Só executa se tiver user.id
     if (!user?.id) {
-      console.log('⚠️ [useGoalsForm] Aguardando user.id...');
+      console.log('⚠️ [useGoalsForm] Usuário não autenticado ao buscar metas.');
       return;
     }
 
     try {
-      console.log('🚀 [useGoalsForm] INICIANDO fetchGoals para user:', user.id);
+      console.log('🚀 [useGoalsForm] Iniciando busca de metas para user:', user.id);
       setLoading(true);
-
-      console.log('📊 [useGoalsForm] Buscando metas para usuário:', user.id);
-
+      
       const { data, error } = await supabase
         .from('metas')
-        .select('*')
+        .select('meta_semanal, meta_mensal, meta_anual')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      console.log('📊 [useGoalsForm] Resultado da query de metas:', { 
-        data, 
-        error: error?.message,
-        errorCode: error?.code,
-        hasData: !!data
-      });
+      console.log('📊 [useGoalsForm] Resultado da query:', { data, error: error?.message });
 
       if (error && error.code !== 'PGRST116') {
         console.error('❌ [useGoalsForm] Erro ao buscar metas:', error);
@@ -53,38 +45,41 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
       }
 
       if (data) {
-        console.log('✅ [useGoalsForm] Metas carregadas:', {
-          meta_semanal: data.meta_semanal,
-          meta_mensal: data.meta_mensal,
-          meta_anual: data.meta_anual
-        });
         setMetaSemanal(data.meta_semanal || 0);
         setMetaMensal(data.meta_mensal || 0);
         setMetaAnual(data.meta_anual || 0);
+        console.log('✅ [useGoalsForm] Metas carregadas com sucesso:', data);
       } else {
         console.log('📝 [useGoalsForm] Nenhuma meta encontrada - usando valores padrão');
         setMetaSemanal(0);
         setMetaMensal(0);
         setMetaAnual(0);
       }
-    } catch (error) {
-      console.error('💥 [useGoalsForm] Erro fatal ao buscar metas:', error);
+    } catch (err) {
+      console.error('💥 [useGoalsForm] Erro inesperado ao buscar metas:', err);
       toast.error('Erro inesperado ao carregar metas. Tente novamente.');
     } finally {
-      console.log('🏁 [useGoalsForm] FINALIZANDO fetchGoals - setLoading(false)');
+      console.log('🏁 [useGoalsForm] Finalizando busca - setLoading(false)');
       setLoading(false);
     }
   }, [user?.id]);
 
+  useEffect(() => {
+    if (user?.id) {
+      console.log('🔄 [useGoalsForm] useEffect executado - iniciando carregamento para user:', user.id);
+      fetchGoals();
+    }
+  }, [fetchGoals]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!user?.id) {
       console.error('❌ [useGoalsForm] Usuário não autenticado ao salvar metas');
       toast.error('❌ Erro: usuário não autenticado');
       return;
     }
-    
+
     try {
       setSaving(true);
 
@@ -127,13 +122,6 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
       setSaving(false);
     }
   };
-
-  useEffect(() => {
-    if (user?.id) {
-      console.log('🔄 [useGoalsForm] useEffect executado - iniciando carregamento para user:', user.id);
-      fetchGoals();
-    }
-  }, [fetchGoals]);
 
   console.log('🎯 [useGoalsForm] Estado atual:', { 
     userId: user?.id,
