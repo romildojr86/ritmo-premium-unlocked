@@ -27,6 +27,7 @@ const UserGoalsProgress = ({ stats }: UserGoalsProgressProps) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('🔄 [UserGoalsProgress] Componente montado, iniciando carregamento...');
     fetchGoals();
   }, []);
 
@@ -36,11 +37,19 @@ const UserGoalsProgress = ({ stats }: UserGoalsProgressProps) => {
       setError(null);
       
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔍 [UserGoalsProgress] Verificando sessão:', { 
+        hasSession: !!session, 
+        userId: session?.user?.id,
+        email: session?.user?.email 
+      });
+      
       if (!session?.user) {
-        console.log('⚠️ Usuário não autenticado ao carregar metas do progresso');
+        console.log('⚠️ [UserGoalsProgress] Usuário não autenticado ao carregar metas do progresso');
         setLoading(false);
         return;
       }
+
+      console.log('📊 [UserGoalsProgress] Buscando metas para usuário:', session.user.id);
 
       const { data, error } = await supabase
         .from('metas')
@@ -48,22 +57,29 @@ const UserGoalsProgress = ({ stats }: UserGoalsProgressProps) => {
         .eq('user_id', session.user.id)
         .maybeSingle();
 
+      console.log('📊 [UserGoalsProgress] Resultado da query:', { 
+        data, 
+        error: error?.message,
+        errorCode: error?.code,
+        errorDetails: error?.details 
+      });
+
       if (error && error.code !== 'PGRST116') {
-        console.error('❌ Erro ao buscar metas do progresso:', error);
-        setError('Erro ao carregar metas. Tente novamente.');
+        console.error('❌ [UserGoalsProgress] Erro ao buscar metas do progresso:', error);
+        setError(`Erro ao carregar metas: ${error.message}`);
         return;
       }
 
       if (data) {
         setGoals(data);
-        console.log('✅ Metas do progresso carregadas:', data);
+        console.log('✅ [UserGoalsProgress] Metas do progresso carregadas com sucesso:', data);
       } else {
-        console.log('📝 Nenhuma meta encontrada para o progresso');
-        // Não definir goals como null para manter o estado de "sem metas"
+        console.log('📝 [UserGoalsProgress] Nenhuma meta encontrada para o progresso');
+        setGoals(null);
       }
     } catch (error) {
-      console.error('💥 Erro fatal ao buscar metas do progresso:', error);
-      setError('Erro ao carregar metas. Tente novamente.');
+      console.error('💥 [UserGoalsProgress] Erro fatal ao buscar metas do progresso:', error);
+      setError('Erro inesperado ao carregar metas. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -85,9 +101,22 @@ const UserGoalsProgress = ({ stats }: UserGoalsProgressProps) => {
   };
 
   const handleRetry = () => {
-    console.log('🔄 Tentando recarregar metas do progresso...');
+    console.log('🔄 [UserGoalsProgress] Usuário solicitou retry das metas...');
     fetchGoals();
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-green-600">🎯 Metas do Usuário</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4">Carregando metas...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -110,7 +139,10 @@ const UserGoalsProgress = ({ stats }: UserGoalsProgressProps) => {
         )}
 
         {!goals && !loading && !error ? (
-          <p className="text-gray-600">Defina suas metas para acompanhar seu progresso!</p>
+          <div className="text-center py-4">
+            <p className="text-gray-600 mb-2">Defina suas metas para acompanhar seu progresso!</p>
+            <p className="text-sm text-gray-500">Use o formulário "Minhas Metas" abaixo para começar.</p>
+          </div>
         ) : (
           <div className="space-y-6">
             {/* Meta Semanal */}

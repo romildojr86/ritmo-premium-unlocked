@@ -14,8 +14,15 @@ export const useGoals = () => {
     meta_anual: 0
   });
 
+  console.log('🎯 [useGoals] Estado atual das metas:', goals);
+
+  const updateGoals = (newGoals: Goals) => {
+    console.log('🎯 [useGoals] Atualizando metas:', newGoals);
+    setGoals(newGoals);
+  };
+
   return {
     goals,
-    setGoals
+    setGoals: updateGoals
   };
 };

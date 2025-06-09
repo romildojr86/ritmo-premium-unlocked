@@ -21,10 +21,18 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
       setLoading(true);
       
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔍 [useGoalsForm] Verificando sessão:', { 
+        hasSession: !!session, 
+        userId: session?.user?.id,
+        email: session?.user?.email 
+      });
+      
       if (!session?.user) {
-        console.log('⚠️ Usuário não autenticado ao carregar metas');
+        console.log('⚠️ [useGoalsForm] Usuário não autenticado ao carregar metas');
         return;
       }
+
+      console.log('📊 [useGoalsForm] Buscando metas para usuário:', session.user.id);
 
       const { data, error } = await supabase
         .from('metas')
@@ -32,21 +40,32 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
         .eq('user_id', session.user.id)
         .maybeSingle();
 
+      console.log('📊 [useGoalsForm] Resultado da query:', { 
+        data, 
+        error: error?.message,
+        errorCode: error?.code 
+      });
+
       if (error && error.code !== 'PGRST116') {
-        console.error('❌ Erro ao buscar metas:', error);
+        console.error('❌ [useGoalsForm] Erro ao buscar metas:', error);
+        toast.error(`Erro ao carregar metas: ${error.message}`);
         return;
       }
 
       if (data) {
-        console.log('✅ Metas carregadas:', data);
+        console.log('✅ [useGoalsForm] Metas carregadas com sucesso:', data);
         setMetaSemanal(data.meta_semanal || 0);
         setMetaMensal(data.meta_mensal || 0);
         setMetaAnual(data.meta_anual || 0);
       } else {
-        console.log('📝 Nenhuma meta encontrada - usando valores padrão');
+        console.log('📝 [useGoalsForm] Nenhuma meta encontrada - usando valores padrão');
+        setMetaSemanal(0);
+        setMetaMensal(0);
+        setMetaAnual(0);
       }
     } catch (error) {
-      console.error('💥 Erro fatal ao buscar metas:', error);
+      console.error('💥 [useGoalsForm] Erro fatal ao buscar metas:', error);
+      toast.error('Erro inesperado ao carregar metas. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -59,9 +78,14 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
       setSaving(true);
       
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('💾 [useGoalsForm] Verificando sessão para salvar:', { 
+        hasSession: !!session, 
+        userId: session?.user?.id 
+      });
+      
       if (!session?.user) {
-        console.error('❌ Usuário não autenticado ao salvar metas');
-        toast.error('❌ Erro ao salvar metas');
+        console.error('❌ [useGoalsForm] Usuário não autenticado ao salvar metas');
+        toast.error('❌ Erro: usuário não autenticado');
         return;
       }
 
@@ -72,7 +96,7 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
         meta_anual: metaAnual
       };
 
-      console.log('💾 Salvando metas:', goalRecord);
+      console.log('💾 [useGoalsForm] Salvando metas:', goalRecord);
 
       const { error } = await supabase
         .from('metas')
@@ -80,13 +104,15 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
           onConflict: 'user_id'
         });
 
+      console.log('💾 [useGoalsForm] Resultado do upsert:', { error: error?.message });
+
       if (error) {
-        console.error('❌ Erro no Supabase ao salvar metas:', error);
-        toast.error('❌ Erro ao salvar metas');
+        console.error('❌ [useGoalsForm] Erro no Supabase ao salvar metas:', error);
+        toast.error(`❌ Erro ao salvar metas: ${error.message}`);
         return;
       }
 
-      console.log('✅ Metas salvas com sucesso no Supabase');
+      console.log('✅ [useGoalsForm] Metas salvas com sucesso no Supabase');
       toast.success('✅ Metas salvas com sucesso!');
       
       onGoalsSaved?.({
@@ -96,14 +122,15 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
       });
 
     } catch (error) {
-      console.error('💥 Erro ao salvar metas:', error);
-      toast.error('❌ Erro ao salvar metas');
+      console.error('💥 [useGoalsForm] Erro ao salvar metas:', error);
+      toast.error('❌ Erro inesperado ao salvar metas');
     } finally {
       setSaving(false);
     }
   };
 
   useEffect(() => {
+    console.log('🔄 [useGoalsForm] Iniciando carregamento de metas...');
     fetchGoals();
   }, []);
 
