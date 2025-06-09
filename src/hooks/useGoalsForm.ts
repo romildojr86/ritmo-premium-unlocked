@@ -44,8 +44,10 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
   }, [user?.id]);
 
   useEffect(() => {
-    fetchGoals();
-  }, [fetchGoals]);
+    if (user?.id) {
+      fetchGoals();
+    }
+  }, [user?.id]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
