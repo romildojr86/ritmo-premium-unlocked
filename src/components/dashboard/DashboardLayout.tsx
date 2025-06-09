@@ -55,14 +55,13 @@ const DashboardLayout = ({
     return null;
   }
 
-  // ✅ Fallback global: aguardar user.id estar disponível
+  // ✅ Proteção principal: aguardar user.id estar disponível
   if (!user?.id) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center py-10 text-gray-500">
-            Carregando informações do usuário...
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center py-10 text-gray-500">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-sm">Carregando seu dashboard...</p>
         </div>
       </div>
     );
