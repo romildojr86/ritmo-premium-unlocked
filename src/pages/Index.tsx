@@ -1,4 +1,3 @@
-
 import { Check, Play, TrendingUp, Heart, Shield, Target, FileText, BarChart3, Clock, Calendar, Sparkles, CalendarDays, BarChart2, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -124,17 +123,16 @@ const Index = () => {
             Descubra uma nova forma de cuidar do seu bem-estar.
           </p>
 
-          {/* CTA Button - Improved Mobile Responsiveness */}
-          <Button 
-            onClick={handleSignUp}
-            size="lg" 
-            className="bg-green-600 hover:bg-green-700 text-white px-6 md:px-12 py-6 md:py-8 text-base md:text-xl font-semibold rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl w-full max-w-2xl mx-auto break-words"
-          >
-            <Check className="w-5 h-5 md:w-7 md:h-7 mr-2 md:mr-4 flex-shrink-0" />
-            <span className="leading-tight">
-              Criar minha conta gratuita com 7 dias de acesso Premium
-            </span>
-          </Button>
+          {/* CTA Button - Updated */}
+          <div className="flex justify-center">
+            <Button 
+              onClick={handleSignUp}
+              size="lg" 
+              className="bg-green-500 hover:bg-green-600 text-white font-bold px-8 md:px-12 py-4 md:py-6 text-lg md:text-xl rounded-2xl transition-all duration-300 w-full max-w-xs md:max-w-sm shadow-lg hover:shadow-xl"
+            >
+              Criar Conta Grátis
+            </Button>
+          </div>
         </div>
       </section>
 
