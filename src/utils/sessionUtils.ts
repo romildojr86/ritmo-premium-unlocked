@@ -1,8 +1,7 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User } from '@supabase/supabase-js';
 import { fetchUserAdminStatus } from '@/services/adminService';
-import { saveUserToCache, isCacheValid } from './authCache';
+import { saveUserToCache, isCacheValid, getUserFromCache } from './authCache';
 
 interface UserWithAdmin extends User {
   isAdmin?: boolean;
@@ -12,10 +11,11 @@ export const initializeUserSession = async (): Promise<UserWithAdmin | null> => 
   try {
     console.log('📡 Verificando sessão no Supabase...');
     
-    // Verifica se há cache válido antes de fazer requisição
-    if (isCacheValid()) {
+    // Primeiro, tenta carregar do cache
+    const cachedUser = getUserFromCache();
+    if (cachedUser && isCacheValid()) {
       console.log('💾 Cache válido encontrado - usando cache');
-      return null; // Retorna null para usar o cache
+      return cachedUser; // Retorna o usuário do cache
     }
     
     const { data: { session }, error } = await supabase.auth.getSession();
