@@ -77,6 +77,13 @@ const UserGoalsProgress = ({ stats }: UserGoalsProgressProps) => {
     }
   }, [user?.id]);
 
+  // ✅ Corrigido: só executa quando user.id existir
+  useEffect(() => {
+    if (user?.id) {
+      fetchGoals();
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     if (user?.id) {
       console.log('🔄 [UserGoalsProgress] useEffect executado para user:', user.id);

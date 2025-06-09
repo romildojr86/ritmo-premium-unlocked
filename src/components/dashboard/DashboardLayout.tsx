@@ -55,6 +55,19 @@ const DashboardLayout = ({
     return null;
   }
 
+  // ✅ Fallback global: aguardar user.id estar disponível
+  if (!user?.id) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-10 text-gray-500">
+            Carregando informações do usuário...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Se houve erro grave no perfil E timeout (apenas para erros persistentes)
   if (profileError && dataTimeout && !profileLoading) {
     return <DashboardError onRetry={onRetry} error={profileError} />;

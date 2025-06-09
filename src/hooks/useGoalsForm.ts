@@ -64,12 +64,12 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
     }
   }, [user?.id]);
 
+  // ✅ Corrigido: só executa quando user.id existir
   useEffect(() => {
     if (user?.id) {
-      console.log('🔄 [useGoalsForm] useEffect executado - iniciando carregamento para user:', user.id);
       fetchGoals();
     }
-  }, [fetchGoals]);
+  }, [user?.id]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
