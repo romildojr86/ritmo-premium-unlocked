@@ -27,11 +27,16 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
     handleSubmit
   } = useGoalsForm(onGoalsSaved);
 
+  console.log('🎯 [GoalsFormFields] Renderizando com loading:', loading);
+
   if (loading) {
     return (
       <div className="text-center py-4">
         <p className="text-gray-600">Carregando metas...</p>
-        <p className="text-sm text-gray-500 mt-2">Se esta mensagem persistir, verifique o console (F12) para logs de debug</p>
+        <p className="text-sm text-gray-500 mt-2">Se esta mensagem persistir por mais de 5 segundos, verifique o console (F12) para logs de debug</p>
+        <div className="mt-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+        </div>
       </div>
     );
   }

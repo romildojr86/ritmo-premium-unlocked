@@ -18,17 +18,27 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
 
   const fetchGoals = async () => {
     try {
+      console.log('🚀 [useGoalsForm] INICIANDO fetchGoals...');
       setLoading(true);
       
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('🔍 [useGoalsForm] Verificando sessão:', { 
+      console.log('🔐 [useGoalsForm] Verificando sessão...');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('❌ [useGoalsForm] Erro ao obter sessão:', sessionError);
+        toast.error('Erro de autenticação');
+        setLoading(false);
+        return;
+      }
+      
+      console.log('🔍 [useGoalsForm] Resultado da sessão:', { 
         hasSession: !!session, 
         userId: session?.user?.id,
         email: session?.user?.email 
       });
       
       if (!session?.user) {
-        console.log('⚠️ [useGoalsForm] Usuário não autenticado ao carregar metas');
+        console.log('⚠️ [useGoalsForm] Usuário não autenticado - finalizando loading');
         setLoading(false);
         return;
       }
@@ -41,10 +51,11 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
         .eq('user_id', session.user.id)
         .maybeSingle();
 
-      console.log('📊 [useGoalsForm] Resultado da query:', { 
+      console.log('📊 [useGoalsForm] Resultado da query de metas:', { 
         data, 
         error: error?.message,
-        errorCode: error?.code 
+        errorCode: error?.code,
+        hasData: !!data
       });
 
       if (error && error.code !== 'PGRST116') {
@@ -55,7 +66,11 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
       }
 
       if (data) {
-        console.log('✅ [useGoalsForm] Metas carregadas com sucesso:', data);
+        console.log('✅ [useGoalsForm] Metas carregadas:', {
+          meta_semanal: data.meta_semanal,
+          meta_mensal: data.meta_mensal,
+          meta_anual: data.meta_anual
+        });
         setMetaSemanal(data.meta_semanal || 0);
         setMetaMensal(data.meta_mensal || 0);
         setMetaAnual(data.meta_anual || 0);
@@ -69,6 +84,7 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
       console.error('💥 [useGoalsForm] Erro fatal ao buscar metas:', error);
       toast.error('Erro inesperado ao carregar metas. Tente novamente.');
     } finally {
+      console.log('🏁 [useGoalsForm] FINALIZANDO fetchGoals - setLoading(false)');
       setLoading(false);
     }
   };
@@ -132,9 +148,17 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
   };
 
   useEffect(() => {
-    console.log('🔄 [useGoalsForm] Iniciando carregamento de metas...');
+    console.log('🔄 [useGoalsForm] useEffect executado - iniciando carregamento...');
     fetchGoals();
   }, []);
+
+  console.log('🎯 [useGoalsForm] Estado atual:', { 
+    loading, 
+    saving, 
+    metaSemanal, 
+    metaMensal, 
+    metaAnual 
+  });
 
   return {
     metaSemanal,
