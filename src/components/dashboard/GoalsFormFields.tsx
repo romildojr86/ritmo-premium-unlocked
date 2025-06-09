@@ -28,7 +28,12 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
   } = useGoalsForm(onGoalsSaved);
 
   if (loading) {
-    return <div className="text-center py-4">Carregando metas...</div>;
+    return (
+      <div className="text-center py-4">
+        <p className="text-gray-600">Carregando metas...</p>
+        <p className="text-sm text-gray-500 mt-2">Se esta mensagem persistir, verifique o console (F12) para logs de debug</p>
+      </div>
+    );
   }
 
   return (

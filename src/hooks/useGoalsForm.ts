@@ -29,6 +29,7 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
       
       if (!session?.user) {
         console.log('⚠️ [useGoalsForm] Usuário não autenticado ao carregar metas');
+        setLoading(false);
         return;
       }
 
@@ -49,6 +50,7 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
       if (error && error.code !== 'PGRST116') {
         console.error('❌ [useGoalsForm] Erro ao buscar metas:', error);
         toast.error(`Erro ao carregar metas: ${error.message}`);
+        setLoading(false);
         return;
       }
 
