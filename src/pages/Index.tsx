@@ -1,5 +1,5 @@
 
-import { Check, Play, TrendingUp, Heart, Shield, Target, FileText, BarChart3, Clock, Calendar } from "lucide-react";
+import { Check, Play, TrendingUp, Heart, Shield, Target, FileText, BarChart3, Clock, Calendar, Sparkles, CalendarDays, BarChart2, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
@@ -27,24 +27,24 @@ const Index = () => {
 
   const howItWorks = [
     {
-      step: "1",
+      icon: <Sparkles className="w-8 h-8 text-green-500" />,
       title: "Crie sua conta grátis",
       description: "Ganhe 7 dias de acesso Premium completo"
     },
     {
-      step: "2", 
+      icon: <CalendarDays className="w-8 h-8 text-green-500" />, 
       title: "Registre suas corridas",
-      description: "Interface simples e rápida para não perder tempo"
+      description: "Interface simples e rápida para registrar sem perder tempo"
     },
     {
-      step: "3",
+      icon: <BarChart2 className="w-8 h-8 text-green-500" />,
       title: "Acompanhe sua evolução", 
       description: "Gráficos, metas e progresso em tempo real"
     },
     {
-      step: "4",
+      icon: <Briefcase className="w-8 h-8 text-green-500" />,
       title: "Escolha seu plano",
-      description: "Continue grátis ou assine o Premium após os 7 dias"
+      description: "Continue gratuito ou assine o Premium após os 7 dias"
     }
   ];
 
@@ -124,14 +124,16 @@ const Index = () => {
             Descubra uma nova forma de cuidar do seu bem-estar.
           </p>
 
-          {/* CTA Button */}
+          {/* CTA Button - Improved Mobile Responsiveness */}
           <Button 
             onClick={handleSignUp}
             size="lg" 
-            className="bg-green-600 hover:bg-green-700 text-white px-12 py-8 text-xl font-semibold rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+            className="bg-green-600 hover:bg-green-700 text-white px-6 md:px-12 py-6 md:py-8 text-base md:text-xl font-semibold rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl w-full max-w-2xl mx-auto break-words"
           >
-            <Check className="w-7 h-7 mr-4" />
-            Criar minha conta gratuita com 7 dias de acesso Premium
+            <Check className="w-5 h-5 md:w-7 md:h-7 mr-2 md:mr-4 flex-shrink-0" />
+            <span className="leading-tight">
+              Criar minha conta gratuita com 7 dias de acesso Premium
+            </span>
           </Button>
         </div>
       </section>
@@ -168,7 +170,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* How It Works Section */}
+      {/* How It Works Section - Updated with Card Layout */}
       <section className="py-24 px-4 bg-white">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
@@ -180,19 +182,21 @@ const Index = () => {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {howItWorks.map((step, index) => (
-              <div key={index} className="text-center group">
-                <div className="w-16 h-16 bg-green-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold group-hover:bg-green-700 transition-colors">
-                  {step.step}
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
-                  {step.title}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {step.description}
-                </p>
-              </div>
+              <Card key={index} className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-gray-50 group hover:bg-green-50">
+                <CardContent className="p-8 text-center">
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-green-200 transition-colors">
+                    {step.icon}
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">
+                    {step.title}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {step.description}
+                  </p>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
