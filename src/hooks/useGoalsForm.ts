@@ -19,74 +19,60 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
   const [saving, setSaving] = useState(false);
 
   const fetchGoals = useCallback(async () => {
-    console.log('[useGoalsForm] user.id:', user?.id);
-
     if (!user?.id) return;
+    setLoading(true);
 
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('metas')
-        .select('meta_semanal, meta_mensal, meta_anual')
-        .eq('user_id', user.id)
-        .maybeSingle();
+    const { data, error } = await supabase
+      .from('metas')
+      .select('meta_semanal, meta_mensal, meta_anual')
+      .eq('user_id', user.id)
+      .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        toast.error(`Erro ao carregar metas: ${error.message}`);
-        return;
-      }
-
-      if (data) {
-        setMetaSemanal(data.meta_semanal || 0);
-        setMetaMensal(data.meta_mensal || 0);
-        setMetaAnual(data.meta_anual || 0);
-      } else {
-        setMetaSemanal(0);
-        setMetaMensal(0);
-        setMetaAnual(0);
-      }
-    } catch (err) {
-      toast.error('Erro inesperado ao carregar metas.');
-    } finally {
+    if (error && error.code !== 'PGRST116') {
+      toast.error(`Erro ao carregar metas: ${error.message}`);
       setLoading(false);
+      return;
     }
+
+    if (data) {
+      setMetaSemanal(data.meta_semanal || 0);
+      setMetaMensal(data.meta_mensal || 0);
+      setMetaAnual(data.meta_anual || 0);
+    }
+
+    setLoading(false);
   }, [user?.id]);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchGoals();
-    }
-  }, [user?.id]);
+    fetchGoals();
+  }, [fetchGoals]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user?.id) return;
+    setSaving(true);
 
-    try {
-      setSaving(true);
-      const goalRecord = {
+    const { error } = await supabase
+      .from('metas')
+      .upsert({
         user_id: user.id,
         meta_semanal: metaSemanal,
         meta_mensal: metaMensal,
         meta_anual: metaAnual
-      };
+      }, { onConflict: 'user_id' });
 
-      const { error } = await supabase
-        .from('metas')
-        .upsert(goalRecord, { onConflict: 'user_id' });
-
-      if (error) {
-        toast.error(`Erro ao salvar metas: ${error.message}`);
-        return;
-      }
-
-      toast.success('✅ Metas salvas com sucesso!');
-      onGoalsSaved?.({ meta_semanal: metaSemanal, meta_mensal: metaMensal, meta_anual: metaAnual });
-    } catch (error) {
-      toast.error('❌ Erro inesperado ao salvar metas');
-    } finally {
-      setSaving(false);
+    if (error) {
+      toast.error(`Erro ao salvar metas: ${error.message}`);
+    } else {
+      toast.success('Metas salvas com sucesso!');
+      onGoalsSaved?.({
+        meta_semanal: metaSemanal,
+        meta_mensal: metaMensal,
+        meta_anual: metaAnual
+      });
     }
+
+    setSaving(false);
   };
 
   return {
