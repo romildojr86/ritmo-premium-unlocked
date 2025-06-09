@@ -10,15 +10,15 @@ interface Goals {
 }
 
 export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth(); // Obter o estado de carregamento da autenticação
   const [metaSemanal, setMetaSemanal] = useState<number>(0);
   const [metaMensal, setMetaMensal] = useState<number>(0);
   const [metaAnual, setMetaAnual] = useState<number>(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // Estado de carregamento das metas
   const [saving, setSaving] = useState(false);
 
   const fetchGoals = useCallback(async () => {
-    if (!user?.id) return;
+    if (authLoading || !user?.id) return; // Só buscar se a autenticação não estiver carregando e o user.id estiver presente
     setLoading(true);
 
     const { data, error } = await supabase
@@ -40,13 +40,13 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
     }
 
     setLoading(false);
-  }, [user?.id]);
+  }, [user?.id, authLoading]); // Adicionar authLoading às dependências
 
   useEffect(() => {
-    if (user?.id) {
+    if (!authLoading && user?.id) { // Só chamar fetchGoals se a autenticação não estiver carregando e o user.id estiver disponível
       fetchGoals();
     }
-  }, [user?.id]);
+  }, [user?.id, authLoading, fetchGoals]); // Adicionar fetchGoals às dependências
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
