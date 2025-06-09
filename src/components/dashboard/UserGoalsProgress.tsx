@@ -1,9 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from '@/hooks/useAuth';
 
 interface Goals {
   meta_semanal: number;
@@ -22,39 +23,30 @@ interface UserGoalsProgressProps {
 }
 
 const UserGoalsProgress = ({ stats }: UserGoalsProgressProps) => {
+  const { user } = useAuth();
   const [goals, setGoals] = useState<Goals | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    console.log('🔄 [UserGoalsProgress] Componente montado, iniciando carregamento...');
-    fetchGoals();
-  }, []);
+  const fetchGoals = useCallback(async () => {
+    console.log('[UserGoalsProgress] user.id:', user?.id);
+    
+    // Só executa se tiver user.id
+    if (!user?.id) {
+      console.log('⚠️ [UserGoalsProgress] Aguardando user.id...');
+      return;
+    }
 
-  const fetchGoals = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('🔍 [UserGoalsProgress] Verificando sessão:', { 
-        hasSession: !!session, 
-        userId: session?.user?.id,
-        email: session?.user?.email 
-      });
-      
-      if (!session?.user) {
-        console.log('⚠️ [UserGoalsProgress] Usuário não autenticado ao carregar metas do progresso');
-        setLoading(false);
-        return;
-      }
-
-      console.log('📊 [UserGoalsProgress] Buscando metas para usuário:', session.user.id);
+      console.log('📊 [UserGoalsProgress] Buscando metas para usuário:', user.id);
 
       const { data, error } = await supabase
         .from('metas')
         .select('meta_semanal, meta_mensal, meta_anual')
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
         .maybeSingle();
 
       console.log('📊 [UserGoalsProgress] Resultado da query:', { 
@@ -83,7 +75,14 @@ const UserGoalsProgress = ({ stats }: UserGoalsProgressProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (user?.id) {
+      console.log('🔄 [UserGoalsProgress] useEffect executado para user:', user.id);
+      fetchGoals();
+    }
+  }, [fetchGoals]);
 
   const calculateProgress = (current: number, goal: number) => {
     if (goal === 0) return 0;
@@ -104,6 +103,22 @@ const UserGoalsProgress = ({ stats }: UserGoalsProgressProps) => {
     console.log('🔄 [UserGoalsProgress] Usuário solicitou retry das metas...');
     fetchGoals();
   };
+
+  // Aguardando user.id
+  if (!user?.id) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-green-600">🎯 Metas do Usuário</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4">
+            <p className="text-gray-600">Aguardando autenticação...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (loading) {
     return (
@@ -140,8 +155,8 @@ const UserGoalsProgress = ({ stats }: UserGoalsProgressProps) => {
 
         {!goals && !loading && !error ? (
           <div className="text-center py-4">
-            <p className="text-gray-600 mb-2">Defina suas metas para acompanhar seu progresso!</p>
-            <p className="text-sm text-gray-500">Use o formulário "Minhas Metas" abaixo para começar.</p>
+            <p className="text-gray-600 mb-2">Nenhuma meta cadastrada</p>
+            <p className="text-sm text-gray-500">Use o formulário "Minhas Metas" acima para definir suas metas.</p>
           </div>
         ) : (
           <div className="space-y-6">

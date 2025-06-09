@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useGoalsForm } from '@/hooks/useGoalsForm';
+import { useAuth } from '@/hooks/useAuth';
 import GoalsInputFields from './GoalsInputFields';
 import GoalsSubmitButton from './GoalsSubmitButton';
 
@@ -15,6 +16,7 @@ interface GoalsFormFieldsProps {
 }
 
 const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
+  const { user } = useAuth();
   const {
     metaSemanal,
     setMetaSemanal,
@@ -27,13 +29,21 @@ const GoalsFormFields = ({ onGoalsSaved }: GoalsFormFieldsProps) => {
     handleSubmit
   } = useGoalsForm(onGoalsSaved);
 
-  console.log('🎯 [GoalsFormFields] Renderizando com loading:', loading);
+  console.log('🎯 [GoalsFormFields] Renderizando:', { userId: user?.id, loading });
+
+  // Aguardando user.id
+  if (!user?.id) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-gray-600">Aguardando autenticação...</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
       <div className="text-center py-4">
         <p className="text-gray-600">Carregando metas...</p>
-        <p className="text-sm text-gray-500 mt-2">Se esta mensagem persistir por mais de 5 segundos, verifique o console (F12) para logs de debug</p>
         <div className="mt-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
         </div>

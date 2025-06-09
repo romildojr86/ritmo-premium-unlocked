@@ -1,7 +1,8 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Goals {
   meta_semanal: number;
@@ -10,45 +11,32 @@ interface Goals {
 }
 
 export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
+  const { user } = useAuth();
   const [metaSemanal, setMetaSemanal] = useState<number>(0);
   const [metaMensal, setMetaMensal] = useState<number>(0);
   const [metaAnual, setMetaAnual] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const fetchGoals = async () => {
-    try {
-      console.log('🚀 [useGoalsForm] INICIANDO fetchGoals...');
-      setLoading(true);
-      
-      console.log('🔐 [useGoalsForm] Verificando sessão...');
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error('❌ [useGoalsForm] Erro ao obter sessão:', sessionError);
-        toast.error('Erro de autenticação');
-        setLoading(false);
-        return;
-      }
-      
-      console.log('🔍 [useGoalsForm] Resultado da sessão:', { 
-        hasSession: !!session, 
-        userId: session?.user?.id,
-        email: session?.user?.email 
-      });
-      
-      if (!session?.user) {
-        console.log('⚠️ [useGoalsForm] Usuário não autenticado - finalizando loading');
-        setLoading(false);
-        return;
-      }
+  const fetchGoals = useCallback(async () => {
+    console.log('[useGoalsForm] user.id:', user?.id);
+    
+    // Só executa se tiver user.id
+    if (!user?.id) {
+      console.log('⚠️ [useGoalsForm] Aguardando user.id...');
+      return;
+    }
 
-      console.log('📊 [useGoalsForm] Buscando metas para usuário:', session.user.id);
+    try {
+      console.log('🚀 [useGoalsForm] INICIANDO fetchGoals para user:', user.id);
+      setLoading(true);
+
+      console.log('📊 [useGoalsForm] Buscando metas para usuário:', user.id);
 
       const { data, error } = await supabase
         .from('metas')
         .select('*')
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
         .maybeSingle();
 
       console.log('📊 [useGoalsForm] Resultado da query de metas:', { 
@@ -61,7 +49,6 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
       if (error && error.code !== 'PGRST116') {
         console.error('❌ [useGoalsForm] Erro ao buscar metas:', error);
         toast.error(`Erro ao carregar metas: ${error.message}`);
-        setLoading(false);
         return;
       }
 
@@ -87,28 +74,22 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
       console.log('🏁 [useGoalsForm] FINALIZANDO fetchGoals - setLoading(false)');
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
+    if (!user?.id) {
+      console.error('❌ [useGoalsForm] Usuário não autenticado ao salvar metas');
+      toast.error('❌ Erro: usuário não autenticado');
+      return;
+    }
+    
     try {
       setSaving(true);
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('💾 [useGoalsForm] Verificando sessão para salvar:', { 
-        hasSession: !!session, 
-        userId: session?.user?.id 
-      });
-      
-      if (!session?.user) {
-        console.error('❌ [useGoalsForm] Usuário não autenticado ao salvar metas');
-        toast.error('❌ Erro: usuário não autenticado');
-        return;
-      }
 
       const goalRecord = {
-        user_id: session.user.id,
+        user_id: user.id,
         meta_semanal: metaSemanal,
         meta_mensal: metaMensal,
         meta_anual: metaAnual
@@ -148,11 +129,14 @@ export const useGoalsForm = (onGoalsSaved?: (goals: Goals) => void) => {
   };
 
   useEffect(() => {
-    console.log('🔄 [useGoalsForm] useEffect executado - iniciando carregamento...');
-    fetchGoals();
-  }, []);
+    if (user?.id) {
+      console.log('🔄 [useGoalsForm] useEffect executado - iniciando carregamento para user:', user.id);
+      fetchGoals();
+    }
+  }, [fetchGoals]);
 
   console.log('🎯 [useGoalsForm] Estado atual:', { 
+    userId: user?.id,
     loading, 
     saving, 
     metaSemanal, 
